@@ -33,7 +33,7 @@ int main( void )
 	SetOnAddRemoteClient( OnRemoteClient );
 	SetOnConnectionSucceed( OnConnect );
 
-	Connect( "9216", "127.0.0.1" );
+	Connect( "9216", "127.0.0.1", true );
 
 	WaitFor( g_Confirmed );
 
