@@ -20,6 +20,7 @@ Caveats:
 - UDP packets are fixed to 256b of size.
 - Encryption of packets in whole is not possible as of yet.
 - Users are expected to anticipate connection success or failure.
+- No direct P2P.
 
 History
 -------
@@ -121,3 +122,38 @@ ClientSide::SendUDP( newPacket );
 
 // Do not delete newPacket!
 ```
+
+To send packets from the server (example);
+
+```cpp
+Packet* newPacket = new Packet():
+
+// Setting the private ID is required if the packet needs to go to a specific destination.
+newPacket->SetClientPrivateId( someClient->m_PrivateId );
+
+....
+
+// Send a package with TCP OR UDP to a specific client...
+ServerSide::SendTCP( newPacket );
+ServerSide::SendUDP( newPacket );
+
+// Broadcasting options
+newPacket->SetUDPEnabled( true ); // Enable UDP broadcast.
+newPacket->SetFlag( Packet::PF_FREE ); // Default, send to all.
+newPacket->SetFlag( Packet::PF_SPECIFIC ); // Send only to client with the private Id specified by the packet.
+newPacket->SetFlag( Packet::PF_EXCLUDEORIGIN ); // Send to all but the client with the private Id specified by the packet.
+
+// ... or broadcast the packet.
+ServerSide::Broadcast( newPacket );
+
+// Do not delete newPacket!
+```
+
+More examples can be found within the examples folder.
+
+Future
+======
+- Add Linux support.
+- Improve connection handling.
+- Add custom protocol support.
+- Add encrpytion.
