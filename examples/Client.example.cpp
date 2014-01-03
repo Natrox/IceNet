@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include "IceNetClient.h"
+using namespace IceNet;
 using namespace IceNet::ClientSide;
 
 ThreadSafeBool g_Confirmed( false );

@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include "IceNetServer.h"
+using namespace IceNet;
 using namespace IceNet::ServerSide;
 
 void OnJoin( Client* cl )
