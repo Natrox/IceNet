@@ -156,4 +156,4 @@ Future
 - Add Linux support.
 - Improve connection handling.
 - Add custom protocol support.
-- Add encrpytion.
+- Add encryption.
