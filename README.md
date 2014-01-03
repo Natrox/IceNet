@@ -1,4 +1,123 @@
 IceNet
 ======
 
-A low-level networking library for C++
+IceNet is a statically-linked low-level networking library for Windows. It is currently in early development stages.
+
+Features
+--------
+
+IceNet provides both server and client contexts. The library is low-level, meaning that, beyond basic operations, users are expected to handle data in packets manually through an opcode system. IceNet is designed to be suitable for single-purpose servers; all clients exists within the same context, meaning this library will not be suitable for server applications which provide a large amount of services. IceNet is more suitable for server applications such as those for video games, voice-over-ip and chat.
+
+Feature sheet:
+
+- TCP and UDP support.
+- Flexible; packets can convey any type of information and are handled by user code.
+- Fully multithreaded and scalable. Each client connected to the server is given it's own threads which send, receive or handle packets. IceNet is asynchronous by nature.
+- Compact. Initializing the server/client takes only a few lines of code.
+
+Caveats:
+
+- UDP packets are fixed to 256b of size.
+- Encryption of packets in whole is not possible as of yet.
+- Users are expected to anticipate connection success or failure.
+
+History
+-------
+
+The first version of IceNet was created in September 2012. It was used in a multiplayer first-person-shooter game. This version was very buggy.
+
+The second version of IceNet was created from December 2012 to January 2013. It was to be used as part of a networking assignment. A crippling bug caused suspension of development on IceNet.
+
+Development was resumed in January 2014. The crippling bug was fixed, which allowed for the first public release of IceNet.
+
+Acknowledgements
+----------------
+
+Juul Joosten, for commenting on the code (back in 2012/2013).
+
+How-to
+======
+
+In IceNet, each client has it's own public and private ID. The public ID is used to identify the client everywhere (on other clients) while the private ID is used by the server to find out the origin and handle packet destinations.
+
+The usage of IceNet in an application is very easy. The project should be linked with the appropiate .lib file (IceNetLib.lib for release and IceNetLib_d.lib for debug). Then, the IceNet headers should be included in the project.
+
+For a server application:
+```cpp
+#include "IceNetServer.h"
+using namespace IceNet::ServerSide;
+```
+For a client application:
+```cpp
+#include "IceNetClient.h",
+using namespace IceNet::ClientSide;
+```
+
+Before initializing/connecting, you should link opcode numbers to functions. Some functions are linked internally. Example;
+
+```cpp
+// PRINT_NUMBER_OPCODE is an enum
+LinkOpCodeFunction( PRINT_NUMBER_OPCODE, PrintNumber );
+```
+Some functions are called internally, here is an example;
+
+```cpp
+// This function is called on all clients when another client connects to the server.
+ClientSide::SetOnAddRemoteClient( AddRemoteClient );
+
+// These functions are called depending on the result of the connection.
+ClientSide::SetOnConnectionSucceed( ConnectionSuccessful );
+ClientSide::SetOnConnectionFail( ConnectionFailed );
+
+// These functions are called when a client joins or leaves.
+ServerSide::SetOnAddClient( OnJoin );
+ServerSide::SetOnRemoveClient( OnPart );
+```
+
+After the functions have been linked, one may initialize the server or connect to it;
+
+```cpp
+// Initialize on port 346366.
+ServerSide::Initialize( "346366" );
+
+// Connect to IP on port 34366 (localhost).
+ClientSide::Connect( "346366", "127.0.0.1" )
+```
+
+Here's an example of a packet handling function;
+
+```cpp
+void PrintNumber( Packet* packet )
+{
+  // Retrieve the data from the packet and increment the streaming pointer.
+  int number = packet->RetrieveDataStreaming< int >();
+  
+  printf( "%d\n", number );
+  
+  // Packet is automatically deleted!
+}
+```
+
+To send packets from the client (example);
+
+```cpp
+Packet* newPacket = new Packet():
+
+// Setting the public ID is optional. This is useful if the packet is bounced back to other clients. 
+newPacket->SetClientPublicId( ClientSide::GetLocalClient()->m_PublicId );
+
+// Setting the private ID is useful if a packet is sent back with info from this packet.
+newPacket->SetClientPrivateId( ClientSide::GetLocalClient()->m_PrivateId );
+
+// AddDataStreaming can be used to add any type of data to the packet in a streaming manner.
+newPacket->AddDataStreaming< int >( 42 );
+
+// Opcode determines which linked function to call.
+newPacket->SetOpcode( 5 );
+
+// Send a package with TCP OR UDP.
+ClientSide::SendTCP( newPacket );
+ClientSide::SendUDP( newPacket );
+
+// Do not delete newPacket!
+```
