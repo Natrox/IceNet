@@ -82,7 +82,7 @@ After the functions have been linked, one may initialize the server or connect t
 ServerSide::Initialize( "346366" );
 
 // Connect to IP on port 34366 (localhost).
-ClientSide::Connect( "346366", "127.0.0.1" )
+ClientSide::Connect( "346366", "127.0.0.1", true )
 ```
 
 Here's an example of a packet handling function;
