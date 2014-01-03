@@ -1,8 +1,8 @@
 // The following is psuedo-code
 
+#include "IceNetServer.h"
 #include <Windows.h>
 
-#include "IceNetServer.h"
 using namespace IceNet;
 using namespace IceNet::ServerSide;
 
