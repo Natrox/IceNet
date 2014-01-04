@@ -157,3 +157,8 @@ bool Client::GetLocal( void )
 {
 	return m_Local;
 }
+
+std::string Client::GetIPAddress( void )
+{
+	return m_IP;
+}

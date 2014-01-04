@@ -62,8 +62,14 @@ namespace IceNet
 				break;
 			}
 
+			sockaddr tcpOrigin;
+			int size = (int) sizeof( sockaddr );
+
 			// Accept a new connection (blocking)
 			SOCKET clientSock = accept( NetworkControl::GetSingleton()->m_SocketTCP, NULL, NULL );
+
+			// Get some data from the peer
+			getpeername( clientSock, &tcpOrigin, &size );
 			
 			// If something went wrong, simply continue;
 			if ( clientSock == -1 )
@@ -79,6 +85,9 @@ namespace IceNet
 
 			// Create a new client
 			Client* newClientObj = NetworkControl::GetSingleton()->AddClient( publicId, privateId, false, clientSock );
+
+			// Copy the origin data
+			newClientObj->m_IP = inet_ntoa( ( (sockaddr_in*) &tcpOrigin )->sin_addr );
 
 			// Call the callback if it exists
 			VOID_WITH_CLIENT_PARAM fun = ServerSide::GetOnAddClient();

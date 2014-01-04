@@ -25,6 +25,8 @@
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
 
+#include <string>
+
 /*
 	ICECAT Networking		v2.0
 
@@ -71,6 +73,9 @@ namespace IceNet
 
 		// Check if the client is local, e.g. if the client is created on a client-side configuration.
 		bool GetLocal( void );
+		
+		// Get IP address
+		std::string GetIPAddress( void );
 
 		// These are the various facilities for handling incoming/outgoing packets.
 		PacketSender* GetSenderObject( void );
@@ -84,8 +89,10 @@ namespace IceNet
 
 	private:
 		SOCKET m_SocketTCP;
-		HANDLE m_ThreadHandle;
+		std::string m_IP;
 
+		HANDLE m_ThreadHandle;
+		
 		sockaddr m_UDPOrigin;
 		bool m_UDPInitialized;
 
@@ -107,5 +114,6 @@ namespace IceNet
 		friend class NetworkControl;
 
 		friend DWORD WINAPI ClientEntry( void* ptr );
+		friend DWORD WINAPI ListenerEntry( void* ptr );
 	};
 };
