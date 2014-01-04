@@ -105,22 +105,22 @@ namespace IceNet
 
 			NetworkControl::GetSingleton()->BroadcastToAll( broadcast );
 
-		if ( NetworkControl::GetSingleton()->m_ClientIds.size() > 0 )
-		{
-			for ( unsigned int i = 0; i < NetworkControl::GetSingleton()->m_ClientIds.size(); i++ )
+			if ( NetworkControl::GetSingleton()->m_ClientIds.size() > 0 )
 			{
-				if ( NetworkControl::GetSingleton()->m_ClientIds[i].publicId != publicId )
+				for ( unsigned int i = 0; i < NetworkControl::GetSingleton()->m_ClientIds.size(); i++ )
 				{
-					Packet* pack = new Packet();
+					if ( NetworkControl::GetSingleton()->m_ClientIds[i].publicId != publicId )
+					{
+						Packet* pack = new Packet();
 
-					pack->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
-					pack->AddDataStreaming<unsigned short>( (unsigned short) NetworkControl::GetSingleton()->m_ClientIds[i].publicId );
-					pack->SetClientPrivateId( privateId );
+						pack->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
+						pack->AddDataStreaming<unsigned short>( (unsigned short) NetworkControl::GetSingleton()->m_ClientIds[i].publicId );
+						pack->SetClientPrivateId( privateId );
 
-					newClientObj->GetSenderObject()->AddToQueue( pack );
+						newClientObj->GetSenderObject()->AddToQueue( pack );
+					}
 				}
 			}
-		}
 		}
 
 		return 1;
