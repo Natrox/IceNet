@@ -46,6 +46,7 @@ OpCodeHandler* OpCodeHandler::GetSingleton( void )
 
 void OpCodeHandler::LinkOpCodeFunction( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun )
 {
+	if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return;
 	m_OpCodes[ codeNumber + 256 ] = fun;
 }
 

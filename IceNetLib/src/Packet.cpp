@@ -89,6 +89,7 @@ void Packet::SetUDPEnabled( bool udp )
 
 void Packet::SetOpCode( const unsigned short& opCode )
 {
+	if ( (unsigned short) ( opCode + 256 ) < 256 ) return;
 	*m_OpCode = opCode + 256;
 }
 

@@ -124,7 +124,6 @@ namespace IceNet
 
 						pack->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
 						pack->AddDataStreaming<unsigned short>( (unsigned short) NetworkControl::GetSingleton()->m_ClientIds[i].publicId );
-						pack->SetClientPrivateId( privateId );
 
 						newClientObj->GetSenderObject()->AddToQueue( pack );
 					}
