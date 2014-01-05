@@ -21,7 +21,6 @@ Caveats:
 - Encryption of packets in whole is not possible as of yet.
 - Users are expected to anticipate connection success or failure.
 - No direct P2P.
-- 
 
 *Packet handling can be done synchronously.
 
