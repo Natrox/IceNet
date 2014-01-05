@@ -17,7 +17,6 @@ Feature sheet:
 
 Caveats:
 
-- UDP packets are fixed to 256b of size.
 - Encryption of packets in whole is not possible as of yet.
 - Users are expected to anticipate connection success or failure.
 - No direct P2P.
