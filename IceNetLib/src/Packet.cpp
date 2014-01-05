@@ -184,6 +184,7 @@ void Packet::SetFromDataStream( char* dataStream, unsigned short sizeOfData )
 
 void Packet::BorrowFromDataStream( char* dataStream )
 {
+	free( m_Data );
 	m_Data = dataStream;
 
 	// Set up pointers to the m_Data string
