@@ -350,24 +350,30 @@ int NetworkControl::SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, 
 int NetworkControl::SendToServerUDP( Packet* packetToSend, bool deletePacket, int wsaFlags )
 {	
 	// Calculate the real packet size (size of the string)
-	unsigned short size = 256;
-	unsigned short realSize = packetToSend->GetSize() + sizeof( unsigned short );
+	unsigned short size = packetToSend->GetSize() + sizeof( unsigned short );
 
 	// Get the packet in string format
 	char* buf = packetToSend->GetDataStream();
-	char udpBuffer[256];
-
-	memcpy( udpBuffer, buf, realSize > 256 ? 256 : realSize );
 
 	unsigned int sizeLeft = size;
 	int sizeRead = 0;
 
 	// Send until no bytes are left
-	sendto( m_SocketUDP, udpBuffer, (int) sizeLeft, wsaFlags, m_MyAddrInfoUDP->ai_addr, (int) m_MyAddrInfoUDP->ai_addrlen );
+	while ( sizeLeft > 0 )
+	{
+		sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, m_MyAddrInfoUDP->ai_addr, (int) m_MyAddrInfoUDP->ai_addrlen );
+		sizeLeft -= sizeRead;
 
+		// No bytes left or error
+		if ( sizeRead <= 0 )
+		{
+			break;
+		}
+	}
+	
 	if ( deletePacket ) delete packetToSend;
 
-	return 1;
+	return sizeRead;
 }
 
 int NetworkControl::SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket, int wsaFlags )
@@ -380,26 +386,31 @@ int NetworkControl::SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, 
 
 	sockaddr udpOrig = m_PrivateIdClientMap[privateID]->GetUDPOrigin();
 
-	unsigned short size = 256;
-	unsigned short realSize = packetToSend->GetSize() + sizeof( unsigned short );
-
+	unsigned short size = packetToSend->GetSize() + sizeof( unsigned short );
 	char* buf = packetToSend->GetDataStream();
-	char udpBuffer[256];
-
-	memcpy( udpBuffer, buf, realSize > 256 ? 256 : realSize );
 
 	unsigned int sizeLeft = size;
 	int sizeRead = 0;
 
-	if ( m_PrivateIdClientMap[privateID] != 0 && m_PrivateIdClientMap[privateID]->m_UDPInitialized == true )
+	if ( m_PrivateIdClientMap[privateID]->m_UDPInitialized == true )
 	{
 		const int b = sizeof ( sockaddr );
-		sizeRead = sendto( m_SocketUDP, buf, 256, wsaFlags, &udpOrig, b );
+
+		while ( sizeLeft > 0 )
+		{
+			sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, &udpOrig, b );
+			sizeLeft -= sizeRead;
+
+			if ( sizeRead <= 0 )
+			{
+				break;
+			}
+		}
 	}
 	
 	if ( deletePacket ) delete packetToSend;
 
-	return 1;
+	return sizeRead;
 }
 
 void NetworkControl::BroadcastToAll( Packet* packetToSend )

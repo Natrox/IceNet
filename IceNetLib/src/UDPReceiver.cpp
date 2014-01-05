@@ -96,24 +96,46 @@ void UDPReceiver::ProcessLoop( void )
 
 		Packet* pack = new Packet();
 
-		unsigned short size = 0;
-		char data[ 256 ] = {0, 0};
+		char mnumber[ 4 ] = {0,0,0,0};
+
+		unsigned int totalReceivableSize = sizeof( unsigned short ) * 2;
+		unsigned int sizeLeft = totalReceivableSize;
+		int sizeRead = 0;
 
 		sockaddr orig;
 		int b = sizeof ( orig );
-
-		unsigned int sizeLeft = 256;
 
 		bool leave = false;
 
 		while ( sizeLeft > 0 )
 		{
-			int code = recvfrom( net->m_SocketUDP, &data[256-sizeLeft], sizeLeft, 0, &orig, &b );
-			if ( code == -1 ) { leave = true; break; }
+			sizeRead = recvfrom( net->m_SocketUDP, mnumber + totalReceivableSize-sizeLeft, sizeLeft, MSG_PEEK, &orig, &b );
+			sizeLeft -= sizeRead;
 
-			sizeLeft -= code;
+			if ( sizeRead <= 0 ) break;
+		}
 
-			if ( sizeLeft <= 0 )
+		unsigned short size = *( (unsigned short*) ( mnumber + 2 ) );
+		
+		if ( ( mnumber[0] != 'I' || mnumber[1] != 'S' ) )
+		{
+			delete pack;
+			continue;
+		}
+
+		// Calculate the sizes
+		totalReceivableSize = (unsigned short) size + sizeof( unsigned short );
+		sizeLeft = totalReceivableSize;
+		char* data = (char*) malloc( (size_t) totalReceivableSize );
+
+		while ( sizeLeft > 0 )
+		{
+			sizeRead = recvfrom( net->m_SocketUDP, data + totalReceivableSize-sizeLeft, sizeLeft, 0, &orig, &b );
+			if ( sizeRead == -1 ) { leave = true; break; }
+			
+			sizeLeft -= sizeRead;
+
+			if ( sizeRead <= 0 )
 			{
 				break;
 			}
@@ -121,53 +143,65 @@ void UDPReceiver::ProcessLoop( void )
 
 		if ( leave == true )
 		{
+			delete pack;
+			free( data );
+
 			continue;
 		}
-		
-		if ( ( data[0] != 'I' || data[1] != 'S' ) )
+
+		if ( sizeRead <= 0 )
 		{
 			delete pack;
+			free( data );
+
 			continue;
 		}
 
-		size = *(unsigned short*)(data + sizeof( unsigned short ));
+		pack->BorrowFromDataStream( data );
 
-		pack->SetFromDataStream( data, size + sizeof( unsigned short ) );
+		bool packSafeToDelete = true;
 
 		EnterCriticalSection( &net->m_ClientAccessCSec );
 
-		if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
-		{
-			Client* client = net->m_PrivateIdClientMap[ pack->GetClientPrivateId() ];
+		Client* client = net->m_PrivateIdClientMap[ pack->GetClientPrivateId() ];
 		
-			if ( client != NULL )
+		if ( client != NULL )
+		{
+			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) ) 
 			{
 				client->GetHandlerObject()->AddToQueue( pack );
+				packSafeToDelete = false;
+			}
 			
-				if ( client->m_UDPInitialized == false )
-				{
-					client->m_UDPInitialized = true;
-					client->m_UDPOrigin = orig;
-				}
-			}
-
-			else if ( net->m_LocalClient != 0 )
+			if ( client->m_UDPInitialized == false )
 			{
-				client = net->m_LocalClient;
-				client->GetHandlerObject()->AddToQueue( pack );
-			}
-
-			else
-			{
-				delete pack;
+				client->m_UDPInitialized = true;
+				client->m_UDPOrigin = orig;
 			}
 		}
 
-		else
+		else if ( net->m_LocalClient != 0 )
+		{
+			client = net->m_LocalClient;
+			
+			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) ) 
+			{
+				client->GetHandlerObject()->AddToQueue( pack );
+				packSafeToDelete = false;
+			}
+		}
+
+		if ( ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) ) 
 		{
 			NetworkControl::GetSingleton()->GetPacketHandler()->AddToQueue( pack );
+			packSafeToDelete = false;
 		}
 
-		LeaveCriticalSection( &net->m_ClientAccessCSec );
+		if ( packSafeToDelete )
+		{
+			delete pack;
+		}
+
+		LeaveCriticalSection( &net->m_ClientAccessCSec );	
 	}
 }
