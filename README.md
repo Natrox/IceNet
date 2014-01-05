@@ -36,6 +36,7 @@ Acknowledgements
 ----------------
 
 Juul Joosten, for commenting on the code (back in 2012/2013).
+
 Rick van Miltenburg, for suggesting synchronous packet handling.
 
 How-to
