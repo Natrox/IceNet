@@ -12,7 +12,7 @@ Feature sheet:
 
 - TCP and UDP support.
 - Flexible; packets can convey any type of information and are handled by user code.
-- Fully multithreaded and scalable. Each client connected to the server is given it's own threads which send, receive or handle packets. IceNet is asynchronous by nature.
+- Fully multithreaded and scalable. Each client connected to the server is given it's own threads which send, receive or handle packets. IceNet is asynchronous by nature.*
 - Compact. Initializing the server/client takes only a few lines of code.
 
 Caveats:
@@ -21,6 +21,9 @@ Caveats:
 - Encryption of packets in whole is not possible as of yet.
 - Users are expected to anticipate connection success or failure.
 - No direct P2P.
+- 
+
+*Packet handling can be done synchronously.
 
 History
 -------
@@ -78,11 +81,11 @@ ServerSide::SetOnRemoveClient( OnPart );
 After the functions have been linked, one may initialize the server or connect to it;
 
 ```cpp
-// Initialize on port 346366.
-ServerSide::Initialize( "346366" );
+// Initialize on port 346366. You must set flags as well.
+ServerSide::Initialize( "346366", NetworkControl::PROTOCOL_UDP | NetworkControl::HANDLER_ASYNC );
 
 // Connect to IP on port 34366 (localhost).
-ClientSide::Connect( "346366", "127.0.0.1", true )
+ClientSide::Connect( "346366", "127.0.0.1", NetworkControl::PROTOCOL_UDP | NetworkControl::HANDLER_SYNC )
 ```
 
 Here's an example of a packet handling function;
@@ -97,6 +100,23 @@ void PrintNumber( Packet* packet )
   
   // Packet is automatically deleted!
 }
+```
+
+When using NetworkControl::HANDLER_ASYNC in the initialization, packets are handled by the default client threads, meaning thread safety has to be ensured. If you wish to handle packets in a thread of choice, you may do so;
+
+```cpp
+// Use the NetworkControl::HANDLER_SYNC flag
+ServerSide::Initialize( "346366", NetworkControl::PROTOCOL_UDP | NetworkControl::HANDLER_SYNC );
+
+// for clients
+ClientSide::Connect( "346366", "127.0.0.1", NetworkControl::PROTOCOL_UDP | NetworkControl::HANDLER_SYNC )
+
+....
+
+// Then, in a thread of choice. (This function will return 0 if HANDLER_SYNC isn't used.)
+unsigned int packetsHandled = HandlePackets();
+
+// Packets are deleted automatically!
 ```
 
 To send packets from the client (example);
