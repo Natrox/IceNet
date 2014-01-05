@@ -26,6 +26,8 @@
 #include "ClientProxy.h"
 #include "Broadcaster.h"
 
+#include "PacketHandler.h"
+
 #include <assert.h>
 
 using namespace IceNet;
@@ -35,7 +37,7 @@ NetworkControl* NetworkControl::m_Singleton = NULL;
 int NetworkControl::m_InitCount = NULL;
 
 NetworkControl::NetworkControl( void ) :
-				m_EnabledProtocols( (SV_PROTOCOL) ( PACK_TCP | PACK_UDP ) ),
+				m_Flags( (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) ),
 				m_SocketTCP( NULL ), m_SocketUDP( NULL ),
 				m_NetworkThreadHandle( NULL ),
 				m_StopRequestedEvent( NULL ),
@@ -56,13 +58,23 @@ NetworkControl::NetworkControl( void ) :
 	}
 }
 
-NetworkControl::SV_ERRORCODE NetworkControl::InitializeServer( PCSTR listenPort, SV_PROTOCOL enabledProtocols )
+NetworkControl::ErrorCodes NetworkControl::InitializeServer( PCSTR listenPort, Flags flags )
 {
 	// Return if the networking has been initialized already
 	if ( m_InitCount != 0 ) return ERROR_ALREADY_INIT;
 
 	m_Singleton = new NetworkControl();
-	m_Singleton->m_EnabledProtocols = enabledProtocols;
+	m_Singleton->m_Flags = flags;
+
+	if ( m_Singleton->m_Flags & HANDLER_SYNC )
+	{
+		m_Singleton->m_PacketHandler = new PacketHandler( 0 );
+	}
+
+	else
+	{
+		m_Singleton->m_PacketHandler = 0;
+	}
 	
 	// Try to start WinSock
 	if ( WSAStartup( MAKEWORD( 2, 0 ), &m_Singleton->m_WSAData ) == -1 )
@@ -114,7 +126,7 @@ NetworkControl::SV_ERRORCODE NetworkControl::InitializeServer( PCSTR listenPort,
 	}
 
 	// If UDP has been enabled, go ahead and do all this for UDP
-	if ( enabledProtocols & PACK_UDP )
+	if ( flags & PROTOCOL_UDP )
 	{
 		memset( &hints, 0, sizeof( hints ) );
 		hints.ai_family = AF_UNSPEC;
@@ -148,12 +160,22 @@ NetworkControl::SV_ERRORCODE NetworkControl::InitializeServer( PCSTR listenPort,
 	return ERROR_NONE;
 }
 
-NetworkControl::SV_ERRORCODE NetworkControl::InitializeClient( PCSTR destinationPort, PCSTR ipAddress, SV_PROTOCOL enabledProtocols )
+NetworkControl::ErrorCodes NetworkControl::InitializeClient( PCSTR destinationPort, PCSTR ipAddress, Flags flags )
 {
 	if ( m_InitCount != 0 ) return ERROR_ALREADY_INIT;
 
 	m_Singleton = new NetworkControl();
-	m_Singleton->m_EnabledProtocols = enabledProtocols;
+	m_Singleton->m_Flags = flags;
+
+	if ( m_Singleton->m_Flags & HANDLER_SYNC )
+	{
+		m_Singleton->m_PacketHandler = new PacketHandler( 0 );
+	}
+
+	else
+	{
+		m_Singleton->m_PacketHandler = 0;
+	}
 	
 	if ( WSAStartup( MAKEWORD( 2, 0 ), &m_Singleton->m_WSAData ) == -1 )
 	{
@@ -188,7 +210,7 @@ NetworkControl::SV_ERRORCODE NetworkControl::InitializeClient( PCSTR destination
 		return ERROR_SOCKET_FAIL_TCP;
 	}
 
-	if ( enabledProtocols & PACK_UDP )
+	if ( flags & PROTOCOL_UDP )
 	{
 		memset( &hints, 0, sizeof( hints ) );
 		hints.ai_family = AF_UNSPEC;
@@ -247,6 +269,11 @@ NetworkControl::~NetworkControl( void )
 		{
 			delete m_PublicIdClientProxyMap[ m_ClientProxyIds[i].publicId ];
 		}
+	}
+
+	if ( m_Singleton->m_Flags & HANDLER_SYNC )
+	{
+		delete m_Singleton->m_PacketHandler;
 	}
 }
 
@@ -494,4 +521,14 @@ void NetworkControl::RemoveClientProxy( CLIENT_ID publicId )
 int NetworkControl::ConnectToHost( void )
 {
 	return connect( m_SocketTCP, m_MyAddrInfoTCP->ai_addr, (int) m_MyAddrInfoTCP->ai_addrlen );
+}
+
+unsigned int NetworkControl::GetFlags( void )
+{
+	return m_Flags;
+}
+
+PacketHandler* NetworkControl::GetPacketHandler( void )
+{
+	return m_PacketHandler;
 }

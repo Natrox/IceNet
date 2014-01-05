@@ -21,11 +21,10 @@
 */
 
 #include "IceNetClient.h"
-
-#include "NetworkControl.h"
 #include "OpCodeHandler.h"
 
 #include "PacketSender.h"
+#include "PacketHandler.h"
 
 namespace IceNet
 {
@@ -39,9 +38,9 @@ namespace IceNet
 		VOID_WITH_CLIENTPROXY_PARAM g_AddRemote = 0;
 		VOID_WITH_CLIENTPROXY_PARAM g_RemoveRemote = 0;
 
-		int Connect( PCSTR port, PCSTR ip, bool udpEnabled )
+		int Connect( PCSTR port, PCSTR ip, unsigned int flags = NetworkControl::PROTOCOL_UDP )
 		{
-			NetworkControl::SV_ERRORCODE error = NetworkControl::InitializeClient( port, ip, udpEnabled == false ? NetworkControl::PACK_TCP : NetworkControl::PACK_UDP );
+			NetworkControl::ErrorCodes error = NetworkControl::InitializeClient( port, ip, (NetworkControl::Flags) flags );
 		
 			ConnectionInfo cinfo = { ip, port };
 			if ( error != NetworkControl::ERROR_NONE && g_OnFail != 0 ) g_OnFail( cinfo );
@@ -75,6 +74,13 @@ namespace IceNet
 
 			packet->SetUDPEnabled( true );
 			NetworkControl::GetSingleton()->m_LocalClient->GetSenderObject()->AddToQueue( packet );
+		}
+
+		unsigned int HandlePackets( void )
+		{
+			if ( NetworkControl::GetSingleton()->GetPacketHandler() == 0 ) return 0;
+
+			return NetworkControl::GetSingleton()->GetPacketHandler()->HandlePackets();
 		}
 
 		Client* GetLocalClient( void )

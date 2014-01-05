@@ -47,6 +47,7 @@ namespace IceNet
 		~PacketHandler( void );
 
 		static DWORD WINAPI PacketHandlerLoop( void* packetHandler );
+		unsigned int HandlePackets( void );
 		void AddToQueue( Packet* packet );
 
 		HANDLE m_ThreadHandle;

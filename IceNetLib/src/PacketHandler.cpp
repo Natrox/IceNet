@@ -33,16 +33,22 @@ PacketHandler::PacketHandler( Client* parentClient ) :
 {
 	InitializeCriticalSection( &m_PacketAdditionCSec );
 
-	m_PacketQueueSemaphore = CreateSemaphore( NULL, NULL, LONG_MAX, NULL );
-	m_ThreadHandle = CreateThread( NULL, NULL, PacketHandlerLoop, this, NULL, NULL );
+	if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
+	{
+		m_PacketQueueSemaphore = CreateSemaphore( NULL, NULL, LONG_MAX, NULL );
+		m_ThreadHandle = CreateThread( NULL, NULL, PacketHandlerLoop, this, NULL, NULL );
+	}
 }
 
 PacketHandler::~PacketHandler( void )
 {
-	WaitForSingleObject( m_ThreadHandle, INFINITE );
+	if ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_ASYNC )
+	{
+		WaitForSingleObject( m_ThreadHandle, INFINITE );
 
-	CloseHandle( m_ThreadHandle );
-	CloseHandle( m_PacketQueueSemaphore );
+		CloseHandle( m_ThreadHandle );
+		CloseHandle( m_PacketQueueSemaphore );
+	}
 
 	DeleteCriticalSection( &m_PacketAdditionCSec );
 
@@ -59,6 +65,11 @@ PacketHandler::~PacketHandler( void )
 
 DWORD WINAPI PacketHandler::PacketHandlerLoop( void* packetHandler )
 {
+	if ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC )
+	{
+		return 1;
+	}
+
 	PacketHandler* ph = (PacketHandler*) packetHandler;
 
 	while ( true )
@@ -98,4 +109,34 @@ void PacketHandler::AddToQueue( Packet* packet )
 	ReleaseSemaphore( m_PacketQueueSemaphore, 1, 0 );
 
 	LeaveCriticalSection( &m_PacketAdditionCSec );
+}
+
+unsigned int PacketHandler::HandlePackets( void )
+{
+	if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
+	{
+		return 0;
+	}
+
+	unsigned int amount = 0;
+
+	EnterCriticalSection( &m_PacketAdditionCSec );
+
+	while ( m_PacketQueue.size() > 0 )
+	{
+		// Get a packet from the queue.
+		Packet* handlePacket = m_PacketQueue.front();
+		m_PacketQueue.pop();
+
+		// Handle the packet if its operation code is recognized
+		PACKET_HANDLING_FUNCTION fun = OpCodeHandler::GetSingleton()->GetOpCodeFunction( handlePacket->GetOpCode() );
+		if ( fun != NULL ) fun( handlePacket );
+		
+		delete handlePacket;
+		amount++;
+	}
+
+	LeaveCriticalSection( &m_PacketAdditionCSec );
+
+	return amount;
 }

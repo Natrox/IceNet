@@ -50,7 +50,11 @@ Client::Client( CLIENT_ID publicId, CLIENT_ID privateId, bool local, SOCKET sock
 
 	m_SenderObject = new PacketSender( this );
 	m_ReceiverObject = new PacketReceiver( this );
-	m_HandlerObject = new PacketHandler( this );
+
+	if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
+	{
+		m_HandlerObject = new PacketHandler( this );
+	}
 
 	// Create the KeepAlive thread
 	m_ThreadHandle = CreateThread( NULL, NULL, KeepAlive, this, NULL, NULL );

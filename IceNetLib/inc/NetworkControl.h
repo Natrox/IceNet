@@ -46,19 +46,25 @@ namespace IceNet
 	class Client;
 	class ClientProxy;
 	class Packet;
+	class PacketHandler;
 
 	class NetworkControl
 	{
 	public:
 		// TCP is always on, UDP is enabled by default
-		enum SV_PROTOCOL
+		enum Flags
 		{
-			PACK_TCP,
-			PACK_UDP
+			// Protocols
+			PROTOCOL_TCP = 0,
+			PROTOCOL_UDP = 1,
+
+			// Handler settings,
+			HANDLER_ASYNC = 0,			// Packet handling is done asynchronously. Users are expected to make opcode functions threadsafe.
+			HANDLER_SYNC = 2			// Packet handling is invoked by the user. Opcode functions run in the same thread HandlePackets() was called from.
 		};
 
 		// Error codes in case things fail
-		enum SV_ERRORCODE
+		enum ErrorCodes
 		{
 			ERROR_NONE,
 			ERROR_SOCKET_FAIL_TCP,
@@ -72,14 +78,15 @@ namespace IceNet
 
 		// Constructor and initialization functions
 		NetworkControl( void );
-		static SV_ERRORCODE InitializeServer( PCSTR listenPort, SV_PROTOCOL enabledProtocols = (SV_PROTOCOL) ( PACK_TCP | PACK_UDP ) );
-		static SV_ERRORCODE InitializeClient( PCSTR destinationPort, PCSTR ipAddress, SV_PROTOCOL enabledProtocols = (SV_PROTOCOL) ( PACK_TCP | PACK_UDP ) );
+		static ErrorCodes InitializeServer( PCSTR listenPort, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
+		static ErrorCodes InitializeClient( PCSTR destinationPort, PCSTR ipAddress, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
 
 		// Destructor and deinitialization function
 		~NetworkControl( void );
 		static void Deinitialize( void );
 
 		static NetworkControl* GetSingleton( void );
+		PacketHandler* GetPacketHandler( void );
 
 		// TCP sending of packages, for sending to server and client respectively. Only use one of these. Overrides packet UDP flag.  
 		int SendToServerTCP( Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
@@ -100,6 +107,9 @@ namespace IceNet
 		ClientProxy* AddClientProxy( CLIENT_ID publicId );
 		void RemoveClientProxy( CLIENT_ID publicId );
 
+		// Flags
+		unsigned int GetFlags( void );
+
 		int ConnectToHost( void );
 
 		HANDLE m_StopRequestedEvent; 
@@ -119,9 +129,12 @@ namespace IceNet
 
 	private:
 		// Connection information
-		SV_PROTOCOL m_EnabledProtocols;
 		addrinfo* m_MyAddrInfoTCP, *m_MyAddrInfoUDP;
 		WSADATA m_WSAData;
+		Flags m_Flags;
+
+		// Packet handler for HANDLER_SYNC
+		PacketHandler* m_PacketHandler;
 
 		CRITICAL_SECTION m_ClientAccessCSec;
 

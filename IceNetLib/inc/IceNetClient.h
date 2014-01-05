@@ -27,6 +27,8 @@
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
 
+#include "NetworkControl.h"
+
 #include "Client.h"
 #include "ClientProxy.h"
 #include "ClientContainer.h"
@@ -64,11 +66,13 @@ namespace IceNet
 {
 	namespace ClientSide
 	{
-		extern int Connect( PCSTR port, PCSTR ip, bool udpEnabled );
+		extern int Connect( PCSTR port, PCSTR ip, unsigned int flags );
 		extern void Disconnect( void );
 
 		extern void SendTCP( Packet* packet );
 		extern void SendUDP( Packet* packet );
+
+		extern unsigned int HandlePackets( void );
 
 		extern Client* GetLocalClient( void );
 		extern ClientProxy* GetRemoteClient( unsigned short publicId );

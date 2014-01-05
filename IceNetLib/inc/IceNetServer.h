@@ -27,6 +27,8 @@
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
 
+#include "NetworkControl.h"
+
 #include "Client.h"
 #include "ClientProxy.h"
 #include "ClientContainer.h"
@@ -64,12 +66,14 @@ namespace IceNet
 {
 	namespace ServerSide
 	{
-		extern int Initialize( PCSTR port );
+		extern int Initialize( PCSTR port, unsigned int flags );
 		extern void Deinitialize( void );
 
 		extern void SendTCP( Packet* packet, bool deletePacket = true );
 		extern void SendUDP( Packet* packet, bool deletePacket = true );
 		extern void Broadcast( Packet* packet );
+
+		extern unsigned int HandlePackets( void );
 
 		extern Client* GetClientPublic( unsigned short publicId );
 		extern Client* GetClientPrivate( unsigned short privateId );

@@ -136,28 +136,36 @@ void UDPReceiver::ProcessLoop( void )
 
 		EnterCriticalSection( &net->m_ClientAccessCSec );
 
-		Client* client = net->m_PrivateIdClientMap[ pack->GetClientPrivateId() ];
+		if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
+		{
+			Client* client = net->m_PrivateIdClientMap[ pack->GetClientPrivateId() ];
 		
-		if ( client != NULL )
-		{
-			client->GetHandlerObject()->AddToQueue( pack );
-			
-			if ( client->m_UDPInitialized == false )
+			if ( client != NULL )
 			{
-				client->m_UDPInitialized = true;
-				client->m_UDPOrigin = orig;
+				client->GetHandlerObject()->AddToQueue( pack );
+			
+				if ( client->m_UDPInitialized == false )
+				{
+					client->m_UDPInitialized = true;
+					client->m_UDPOrigin = orig;
+				}
 			}
-		}
 
-		else if ( net->m_LocalClient != 0 )
-		{
-			client = net->m_LocalClient;
-			client->GetHandlerObject()->AddToQueue( pack );
+			else if ( net->m_LocalClient != 0 )
+			{
+				client = net->m_LocalClient;
+				client->GetHandlerObject()->AddToQueue( pack );
+			}
+
+			else
+			{
+				delete pack;
+			}
 		}
 
 		else
 		{
-			delete pack;
+			NetworkControl::GetSingleton()->GetPacketHandler()->AddToQueue( pack );
 		}
 
 		LeaveCriticalSection( &net->m_ClientAccessCSec );

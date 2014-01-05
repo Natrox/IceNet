@@ -21,11 +21,10 @@
 */
 
 #include "IceNetServer.h"
-
-#include "NetworkControl.h"
 #include "OpCodeHandler.h"
 
 #include "PacketSender.h"
+#include "PacketHandler.h"
 
 namespace IceNet
 {
@@ -35,9 +34,9 @@ namespace IceNet
 		VOID_WITH_CLIENT_PARAM g_Add = 0;
 		VOID_WITH_CLIENT_PARAM g_Remove = 0;
 
-		int Initialize( PCSTR port )
+		int Initialize( PCSTR port, unsigned int flags = NetworkControl::PROTOCOL_UDP )
 		{
-			NetworkControl::SV_ERRORCODE error = NetworkControl::InitializeServer( port, NetworkControl::PACK_UDP );
+			NetworkControl::ErrorCodes error = NetworkControl::InitializeServer( port, (NetworkControl::Flags) flags );
 		
 			return (int) error;
 		}
@@ -84,6 +83,13 @@ namespace IceNet
 		void Broadcast( Packet* packet )
 		{
 			NetworkControl::GetSingleton()->BroadcastToAll( packet );
+		}
+
+		unsigned int HandlePackets( void )
+		{
+			if ( NetworkControl::GetSingleton()->GetPacketHandler() == 0 ) return 0;
+
+			return NetworkControl::GetSingleton()->GetPacketHandler()->HandlePackets();
 		}
 
 		Client* GetClientPublic( unsigned short publicId )

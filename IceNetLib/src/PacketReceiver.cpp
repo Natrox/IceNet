@@ -110,14 +110,14 @@ DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 
 		pack->BorrowFromDataStream( data );
 
-		if ( !pack->GetUDPEnabled() )
+		if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
 		{
 			pr->m_ParentClient->GetHandlerObject()->AddToQueue( pack );
 		}
 
 		else
 		{
-			delete pack;
+			NetworkControl::GetSingleton()->GetPacketHandler()->AddToQueue( pack );
 		}
 	}
 
