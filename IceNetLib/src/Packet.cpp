@@ -182,6 +182,20 @@ void Packet::SetFromDataStream( char* dataStream, unsigned short sizeOfData )
 	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
 }
 
+void Packet::BorrowFromDataStream( char* dataStream )
+{
+	m_Data = dataStream;
+
+	// Set up pointers to the m_Data string
+	m_StreamSize = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) );
+
+	m_PrivateId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 2 );
+	m_PublicId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 3 );
+
+	m_UDPEnabled = ( unsigned char* ) ( m_Data + sizeof( unsigned short ) * 4 );
+	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
+}
+
 inline void Packet::ResizeCheck( unsigned short size )
 {
 	bool resize = false;

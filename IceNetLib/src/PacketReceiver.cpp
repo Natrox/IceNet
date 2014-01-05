@@ -108,7 +108,7 @@ DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 			return 1;
 		}
 
-		pack->SetFromDataStream( data, totalReceivableSize );
+		pack->BorrowFromDataStream( data );
 
 		if ( !pack->GetUDPEnabled() )
 		{
@@ -119,8 +119,6 @@ DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 		{
 			delete pack;
 		}
-
-		free( data );
 	}
 
 	return 1;

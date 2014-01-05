@@ -82,12 +82,6 @@ namespace IceNet
 		PACK_FLAG GetFlag( void );
 		Packet* GetCopy( void );
 
-		template<typename T>
-		struct is_pointer { static const bool value = false; };
-
-		template<typename T>
-		struct is_pointer<T*> { static const bool value = true; };
-
 		// Add data in a streaming manner (position in data changes with each added object)
 		template < typename T > void AddDataStreaming( T data )
 		{
@@ -133,6 +127,7 @@ namespace IceNet
 
 		// Construct the package from a string
 		void SetFromDataStream( char* dataStream, unsigned short sizeOfData ); 
+		void BorrowFromDataStream( char* dataStream );
 
 	private:
 		void SetOpCodeInternal( const unsigned short& opCode );
