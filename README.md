@@ -21,6 +21,7 @@ Caveats:
 - Encryption of packets in whole is not possible as of yet.
 - Users are expected to anticipate connection success or failure.
 - No direct P2P.
+- 
 
 *Packet handling can be done synchronously.
 
@@ -101,7 +102,7 @@ void PrintNumber( Packet* packet )
 }
 ```
 
-When using NetworkControl::HANDLER_ASYNC in the initialization, packets are handled by the default client threads, meaning thread safety has to be ensured. If you wish to handle packets in a thread of choice, you may do so;
+When using NetworkControl::HANDLER_ASYNC in the initialization, packets are handled by the default client threads. This means that thread safety has to be ensured. If you wish to handle packets in a thread of choice, you may do so;
 
 ```cpp
 // Use the NetworkControl::HANDLER_SYNC flag
