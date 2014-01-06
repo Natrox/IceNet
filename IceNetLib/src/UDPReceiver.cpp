@@ -119,6 +119,8 @@ void UDPReceiver::ProcessLoop( void )
 		
 		if ( ( mnumber[0] != 'I' || mnumber[1] != 'S' ) )
 		{
+			recvfrom( net->m_SocketUDP, mnumber, 1, 0, &orig, &b );
+			
 			delete pack;
 			continue;
 		}

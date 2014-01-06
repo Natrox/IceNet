@@ -157,12 +157,27 @@ PacketHandler* Client::GetHandlerObject( void )
 	return m_HandlerObject;
 }
 
-bool Client::GetLocal( void )
+bool Client::IsLocal( void )
 {
 	return m_Local;
+}
+
+HANDLE Client::GetStopEvent( void )
+{
+	return m_StopEvent;
 }
 
 std::string Client::GetIPAddress( void )
 {
 	return m_IP;
+}
+
+CLIENT_ID Client::GetPublicId( void )
+{
+	return m_PublicId;
+}
+
+CLIENT_ID Client::GetPrivateId( void )
+{
+	return m_PrivateId;
 }

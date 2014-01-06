@@ -30,13 +30,13 @@ namespace IceNet
 {
 	void ReceiveID( Packet* pack )
 	{
-		if ( NetworkControl::GetSingleton()->m_LocalClient->m_PrivateId != 0 ) return;
+		if ( NetworkControl::GetSingleton()->m_LocalClient->GetPrivateId() != 0 ) return;
 
 		unsigned short publicId = pack->RetrieveDataStreaming< unsigned short >();
 		unsigned short privateId = pack->RetrieveDataStreaming< unsigned short >();
 
-		NetworkControl::GetSingleton()->m_LocalClient->m_PublicId = publicId;
-		NetworkControl::GetSingleton()->m_LocalClient->m_PrivateId = privateId;
+		NetworkControl::GetSingleton()->SetPublicId( publicId );
+		NetworkControl::GetSingleton()->SetPrivateId( privateId );
 
 		if ( ClientSide::GetOnConnectionSucceed() != 0 ) ClientSide::GetOnConnectionSucceed()( NetworkControl::GetSingleton()->m_LocalClient );
 	

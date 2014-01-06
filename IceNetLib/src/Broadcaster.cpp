@@ -131,18 +131,18 @@ void Broadcaster::ProcessLoop( void )
 			for ( unsigned int i = 0; i < net->m_ClientIds.size(); ++i )
 			{
 				if ( outgoingPacket->GetFlag() == Packet::PF_EXCLUDEORIGIN && 
-					outgoingPacket->GetClientPrivateId() == net->m_ClientIds[i].privateId )
+					outgoingPacket->GetClientPrivateId() == net->m_ClientIds[i].cc_PrivateId )
 				{
 					continue;
 				}
 
 				else if ( outgoingPacket->GetFlag() == Packet::PF_SPECIFIC  && 
-					outgoingPacket->GetClientPrivateId() != net->m_ClientIds[i].privateId )
+					outgoingPacket->GetClientPrivateId() != net->m_ClientIds[i].cc_PrivateId )
 				{
 					continue;
 				}
 
-				Client* client = net->m_PrivateIdClientMap[ net->m_ClientIds[i].privateId ];
+				Client* client = net->m_PrivateIdClientMap[ net->m_ClientIds[i].cc_PrivateId ];
 				if ( client == NULL ) continue;
 
 				Packet* copy = outgoingPacket->GetCopy();

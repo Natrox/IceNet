@@ -49,6 +49,19 @@ namespace IceNet
 	class PacketSender;
 	class PacketReceiver;
 	class PacketHandler;
+	class Packet;
+
+	namespace ClientSide
+	{
+		void SendTCP( Packet* packet );
+		void SendUDP( Packet* packet );
+	};
+
+	namespace ServerSide
+	{
+		void SendTCP( Packet* packet, bool deletePacket );
+		void SendUDP( Packet* packet, bool deletePacket );
+	};
 
 	class Client
 	{
@@ -58,8 +71,6 @@ namespace IceNet
 
 		// This function wakes up and kills the client if certain conditions are met
 		static DWORD WINAPI KeepAlive( void* client );
-
-		void SetSocket( const SOCKET& socket );
 		SOCKET GetSocket( void );
 
 		// This allows you to store and retrieve any kind of object
@@ -67,43 +78,49 @@ namespace IceNet
 		template < typename T > T* GetAssociatedObject( void ) { return (T*) m_AssociatedObject; }
 
 		// We need to know the UDP origin to send UDP data back, so we'll need these functions
-		void SetUDPOrigin( const sockaddr& addr );
-		sockaddr GetUDPOrigin(  );
+		sockaddr GetUDPOrigin( void );
 		bool CompareUDPOrigin( const sockaddr& addr );
 
 		// Check if the client is local, e.g. if the client is created on a client-side configuration.
-		bool GetLocal( void );
+		bool IsLocal( void );
 		
-		// Get IP address
+		// IP address
 		std::string GetIPAddress( void );
 
-		// These are the various facilities for handling incoming/outgoing packets.
-		PacketSender* GetSenderObject( void );
-		PacketReceiver* GetReceiverObject( void );
-		PacketHandler* GetHandlerObject( void );
-
-		CLIENT_ID m_PublicId;
-		CLIENT_ID m_PrivateId;
-
-		HANDLE m_StopEvent;
+		// Getters
+		HANDLE GetStopEvent( void );
+		CLIENT_ID GetPublicId( void );
+		CLIENT_ID GetPrivateId( void );
 
 	private:
-		SOCKET m_SocketTCP;
-		std::string m_IP;
-
+		HANDLE m_StopEvent;
 		HANDLE m_ThreadHandle;
+
+		SOCKET m_SocketTCP;
+		CLIENT_ID m_PublicId;
+		CLIENT_ID m_PrivateId;
 		
 		sockaddr m_UDPOrigin;
 		bool m_UDPInitialized;
+		std::string m_IP;
 
 		PacketSender* m_SenderObject;
 		PacketReceiver* m_ReceiverObject;
 		PacketHandler* m_HandlerObject;
 
-		PTR_ANYTHING m_AssociatedObject;
+		mutable PTR_ANYTHING m_AssociatedObject;
 		CRITICAL_SECTION m_AccessCSec;
 
 		bool m_Local;
+
+	private:
+		void SetUDPOrigin( const sockaddr& addr );
+		void SetSocket( const SOCKET& socket );
+
+		// These are the various facilities for handling incoming/outgoing packets.
+		PacketSender* GetSenderObject( void );
+		PacketReceiver* GetReceiverObject( void );
+		PacketHandler* GetHandlerObject( void );
 
 	protected:
 		// These classes and functions need full access to this class.
@@ -112,6 +129,13 @@ namespace IceNet
 		friend class PacketHandler;
 		friend class UDPReceiver;
 		friend class NetworkControl;
+		friend class Broadcaster;
+
+		friend void ClientSide::SendTCP( Packet* packet );
+		friend void ClientSide::SendUDP( Packet* packet );
+
+		friend void ServerSide::SendTCP( Packet* packet, bool deletePacket );
+		friend void ServerSide::SendUDP( Packet* packet, bool deletePacket );
 
 		friend DWORD WINAPI ClientEntry( void* ptr );
 		friend DWORD WINAPI ListenerEntry( void* ptr );

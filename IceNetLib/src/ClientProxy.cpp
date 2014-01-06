@@ -36,3 +36,8 @@ void ClientProxy::SetAssociatedObject( PTR_ANYTHING object )
 {
 	m_AssociatedObject = object;
 }
+
+CLIENT_ID ClientProxy::GetPublicId( void )
+{
+	return m_PublicId;
+}

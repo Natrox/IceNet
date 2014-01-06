@@ -48,9 +48,10 @@ namespace IceNet
 		void SetAssociatedObject( PTR_ANYTHING object );
 		template < typename T > T* GetAssociatedObject( void ) { return T* m_AssociatedObject; }
 
-		CLIENT_ID m_PublicId;
+		CLIENT_ID GetPublicId( void );
 
 	private:
+		CLIENT_ID m_PublicId;
 		PTR_ANYTHING m_AssociatedObject;
 	};
 }

@@ -50,7 +50,7 @@ namespace IceNet
 
 		void Disconnect( void )
 		{
-			if ( NetworkControl::GetSingleton()->m_LocalClient != 0 ) SetEvent( NetworkControl::GetSingleton()->m_LocalClient->m_StopEvent );
+			if ( NetworkControl::GetSingleton()->m_LocalClient != 0 ) SetEvent( NetworkControl::GetSingleton()->m_LocalClient->GetStopEvent() );
 			WaitForSingleObject( NetworkControl::GetSingleton()->m_NetworkThreadHandle, INFINITE );
 
 			NetworkControl::Deinitialize();

@@ -34,9 +34,10 @@
 	class NetworkControl:
 
 	This class is the main interface for all networking activities (Internally).
+	Caution advised.
 */
 
-#define BACKLOG 8
+#define CONNECTION_BACKLOG 8
 
 namespace IceNet
 {
@@ -47,6 +48,10 @@ namespace IceNet
 	class ClientProxy;
 	class Packet;
 	class PacketHandler;
+
+	void ReceiveID( Packet* pack );
+	void AddRemoteClient( Packet* pack );
+	void RemoveRemoteClient( Packet* pack );
 
 	class NetworkControl
 	{
@@ -76,6 +81,10 @@ namespace IceNet
 			ERROR_WSA
 		};
 
+		static NetworkControl* GetSingleton( void );
+		unsigned int GetFlags( void );
+
+	public:
 		// Constructor and initialization functions
 		NetworkControl( void );
 		static ErrorCodes InitializeServer( PCSTR listenPort, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
@@ -85,7 +94,6 @@ namespace IceNet
 		~NetworkControl( void );
 		static void Deinitialize( void );
 
-		static NetworkControl* GetSingleton( void );
 		PacketHandler* GetPacketHandler( void );
 
 		// TCP sending of packages, for sending to server and client respectively. Only use one of these. Overrides packet UDP flag.  
@@ -107,9 +115,11 @@ namespace IceNet
 		ClientProxy* AddClientProxy( CLIENT_ID publicId );
 		void RemoveClientProxy( CLIENT_ID publicId );
 
-		// Flags
-		unsigned int GetFlags( void );
+		// Set ID's
+		void SetPublicId( CLIENT_ID id );
+		void SetPrivateId( CLIENT_ID id );
 
+		// Flags
 		int ConnectToHost( void );
 
 		HANDLE m_StopRequestedEvent; 
@@ -145,6 +155,14 @@ namespace IceNet
 		friend DWORD WINAPI ListenerEntry( void* ptr );
 		friend class Broadcaster;
 		friend class UDPReceiver;
+		friend class PacketSender;
+		friend class PacketReceiver;
+		friend class PacketHandler;
+
+	private:
+		friend void ReceiveID( Packet* pack );
+		friend void AddRemoteClient( Packet* pack );
+		friend void RemoveRemoteClient( Packet* pack );
 
 	private:
 		// Protection against copying and assignment by overriding the copy constructor,

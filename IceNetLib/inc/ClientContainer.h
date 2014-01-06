@@ -36,8 +36,7 @@ namespace IceNet
 
 	struct ClientContainer
 	{
-		CLIENT_ID publicId;
-		CLIENT_ID privateId;
-		void* client;
+		CLIENT_ID cc_PublicId;
+		CLIENT_ID cc_PrivateId;
 	};
 };

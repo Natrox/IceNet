@@ -79,7 +79,7 @@ DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
 
 		LeaveCriticalSection( &ps->m_PacketAdditionCSec );
 
-		if ( ps->m_ParentClient->GetLocal() == false )
+		if ( ps->m_ParentClient->IsLocal() == false )
 		{
 			// If no UDP
 			if ( outgoingPacket->GetUDPEnabled() == false )

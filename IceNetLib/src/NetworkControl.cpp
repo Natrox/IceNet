@@ -118,7 +118,7 @@ NetworkControl::ErrorCodes NetworkControl::InitializeServer( PCSTR listenPort, F
 	}
 
 	// Start listening for connections
-	if ( listen( m_Singleton->m_SocketTCP, BACKLOG ) == -1 )
+	if ( listen( m_Singleton->m_SocketTCP, CONNECTION_BACKLOG ) == -1 )
 	{
 		delete m_Singleton;
 
@@ -258,7 +258,7 @@ NetworkControl::~NetworkControl( void )
 	{
 		for ( unsigned int i = 0; i < m_ClientIds.size(); ++i )
 		{
-			delete m_PublicIdClientMap[ m_ClientIds[i].publicId ];
+			delete m_PublicIdClientMap[ m_ClientIds[i].cc_PublicId ];
 		}
 	}
 
@@ -267,7 +267,7 @@ NetworkControl::~NetworkControl( void )
 	{
 		for ( unsigned int i = 0; i < m_ClientProxyIds.size(); ++i )
 		{
-			delete m_PublicIdClientProxyMap[ m_ClientProxyIds[i].publicId ];
+			delete m_PublicIdClientProxyMap[ m_ClientProxyIds[i].cc_PublicId ];
 		}
 	}
 
@@ -428,7 +428,7 @@ Client* NetworkControl::AddClient( CLIENT_ID publicId, CLIENT_ID privateId, bool
 	Client* newClientObj;
 
 	newClientObj = new Client( publicId, privateId, local, socket );
-	ClientContainer newClient = { publicId, privateId, newClientObj };
+	ClientContainer newClient = { publicId, privateId };
 
 	// Add the client to the maps. Private ID is not required.
 	m_PublicIdClientMap[ publicId ] = newClientObj;
@@ -451,21 +451,21 @@ void NetworkControl::RemoveClient( CLIENT_ID publicId, CLIENT_ID privateId )
 	{
 		for ( unsigned int i = 0; i < m_ClientIds.size(); i++ )
 		{
-			if ( m_ClientIds[i].publicId == publicId )
+			if ( m_ClientIds[i].cc_PublicId == publicId )
 			{
 				// Delete either by private ID or public ID
-				if ( m_ClientIds[i].privateId != 0 )
+				if ( m_ClientIds[i].cc_PrivateId != 0 )
 				{
-					delete m_PrivateIdClientMap[ m_ClientIds[i].privateId ];
-					m_PrivateIdClientMap[ m_ClientIds[i].privateId ] = NULL;
-					m_PublicIdClientMap[ m_ClientIds[i].publicId ] = NULL;
+					delete m_PrivateIdClientMap[ m_ClientIds[i].cc_PrivateId ];
+					m_PrivateIdClientMap[ m_ClientIds[i].cc_PrivateId ] = NULL;
+					m_PublicIdClientMap[ m_ClientIds[i].cc_PublicId ] = NULL;
 				}
 
 				else
 				{
-					delete m_PublicIdClientMap[ m_ClientIds[i].publicId ];
-					if ( m_ClientIds[i].privateId != 0 ) m_PrivateIdClientMap[ m_ClientIds[i].privateId ] = NULL;
-					m_PublicIdClientMap[ m_ClientIds[i].publicId ] = NULL;
+					delete m_PublicIdClientMap[ m_ClientIds[i].cc_PublicId ];
+					if ( m_ClientIds[i].cc_PrivateId != 0 ) m_PrivateIdClientMap[ m_ClientIds[i].cc_PrivateId ] = NULL;
+					m_PublicIdClientMap[ m_ClientIds[i].cc_PublicId ] = NULL;
 				}
 
 				// Remove the client from the ID list
@@ -490,7 +490,7 @@ ClientProxy* NetworkControl::AddClientProxy( CLIENT_ID publicId )
 	ClientProxy* newClientObj;
 
 	newClientObj = new ClientProxy( publicId );
-	ClientContainer newClient = { publicId, 0, newClientObj };
+	ClientContainer newClient = { publicId, 0 };
 
 	// Add the client to the maps. Private ID is not required.
 	m_PublicIdClientProxyMap[ publicId ] = newClientObj;
@@ -512,10 +512,10 @@ void NetworkControl::RemoveClientProxy( CLIENT_ID publicId )
 	{
 		for ( unsigned int i = 0; i < m_ClientProxyIds.size(); i++ )
 		{
-			if ( m_ClientProxyIds[i].publicId == publicId )
+			if ( m_ClientProxyIds[i].cc_PublicId == publicId )
 			{
-				delete m_PublicIdClientProxyMap[ m_ClientProxyIds[i].publicId ];
-				m_PublicIdClientProxyMap[ m_ClientProxyIds[i].publicId ] = NULL;
+				delete m_PublicIdClientProxyMap[ m_ClientProxyIds[i].cc_PublicId ];
+				m_PublicIdClientProxyMap[ m_ClientProxyIds[i].cc_PublicId ] = NULL;
 
 				// Remove the client from the ID list
 				m_ClientProxyIds[i] = m_ClientProxyIds.back();
@@ -542,4 +542,14 @@ unsigned int NetworkControl::GetFlags( void )
 PacketHandler* NetworkControl::GetPacketHandler( void )
 {
 	return m_PacketHandler;
+}
+
+void NetworkControl::SetPublicId( CLIENT_ID id )
+{
+	m_LocalClient->m_PublicId = id;
+}
+
+void NetworkControl::SetPrivateId( CLIENT_ID id )
+{
+	m_LocalClient->m_PrivateId = id;
 }

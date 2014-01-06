@@ -118,12 +118,12 @@ namespace IceNet
 			{
 				for ( unsigned int i = 0; i < NetworkControl::GetSingleton()->m_ClientIds.size(); i++ )
 				{
-					if ( NetworkControl::GetSingleton()->m_ClientIds[i].publicId != publicId )
+					if ( NetworkControl::GetSingleton()->m_ClientIds[i].cc_PublicId != publicId )
 					{
 						Packet* pack = new Packet();
 
 						pack->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
-						pack->AddDataStreaming<unsigned short>( (unsigned short) NetworkControl::GetSingleton()->m_ClientIds[i].publicId );
+						pack->AddDataStreaming<unsigned short>( (unsigned short) NetworkControl::GetSingleton()->m_ClientIds[i].cc_PublicId );
 
 						newClientObj->GetSenderObject()->AddToQueue( pack );
 					}
