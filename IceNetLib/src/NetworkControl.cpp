@@ -359,18 +359,8 @@ int NetworkControl::SendToServerUDP( Packet* packetToSend, bool deletePacket, in
 	int sizeRead = 0;
 
 	// Send until no bytes are left
-	while ( sizeLeft > 0 )
-	{
-		sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, m_MyAddrInfoUDP->ai_addr, (int) m_MyAddrInfoUDP->ai_addrlen );
-		sizeLeft -= sizeRead;
+	sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, m_MyAddrInfoUDP->ai_addr, (int) m_MyAddrInfoUDP->ai_addrlen );
 
-		// No bytes left or error
-		if ( sizeRead <= 0 )
-		{
-			break;
-		}
-	}
-	
 	if ( deletePacket ) delete packetToSend;
 
 	return sizeRead;
@@ -396,16 +386,7 @@ int NetworkControl::SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, 
 	{
 		const int b = sizeof ( sockaddr );
 
-		while ( sizeLeft > 0 )
-		{
-			sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, &udpOrig, b );
-			sizeLeft -= sizeRead;
-
-			if ( sizeRead <= 0 )
-			{
-				break;
-			}
-		}
+		sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, &udpOrig, b );
 	}
 	
 	if ( deletePacket ) delete packetToSend;

@@ -85,8 +85,7 @@ namespace IceNet
 		unsigned int GetFlags( void );
 
 	public:
-		// Constructor and initialization functions
-		NetworkControl( void );
+		// Initialization functions
 		static ErrorCodes InitializeServer( PCSTR listenPort, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
 		static ErrorCodes InitializeClient( PCSTR destinationPort, PCSTR ipAddress, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
 
@@ -167,7 +166,7 @@ namespace IceNet
 	private:
 		// Protection against copying and assignment by overriding the copy constructor,
 		// and overloading the assignment operator. Thanks for the tip Juul.
-
+		NetworkControl( void );
 		NetworkControl( const NetworkControl& netInstance );
 		const NetworkControl& operator=( const NetworkControl& netInstance );
 	};
