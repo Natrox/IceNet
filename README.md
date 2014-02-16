@@ -1,7 +1,7 @@
 IceNet
 ======
 
-IceNet is a statically-linked low-level networking library for Windows. It is currently in early development stages.
+IceNet is a statically-linked low-level networking library for Windows and Linux. It is currently in early development stages.
 
 Features
 --------
