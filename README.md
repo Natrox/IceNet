@@ -44,7 +44,7 @@ How-to
 
 In IceNet, each client has it's own public and private ID. The public ID is used to identify the client everywhere (on other clients) while the private ID is used by the server to find out the origin and handle packet destinations.
 
-The usage of IceNet in an application is very easy. The project should be linked with the appropiate .lib file (IceNetLib.lib for release and IceNetLib_d.lib for debug). Then, the IceNet headers should be included in the project.
+The usage of IceNet in an application is very easy. The project should be linked with the appropiate .lib or .a file (IceNetLib.lib/libIceNetLib.a for release and IceNetLib_d.lib/libIceNetLib_d.a for debug). For development on Linux, also link with -pthread and -lrt. Then, the IceNet headers should be included in the project.
 
 For a server application:
 ```cpp
