@@ -53,7 +53,7 @@ using namespace IceNet::ServerSide;
 ```
 For a client application:
 ```cpp
-#include "IceNetClient.h",
+#include "IceNetClient.h"
 using namespace IceNet::ClientSide;
 ```
 
