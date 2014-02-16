@@ -12,7 +12,7 @@ Feature sheet:
 
 - TCP and UDP support.
 - Flexible; packets can convey any type of information and are handled by user code.
-- Fully multithreaded and scalable. Each client connected to the server is given it's own threads which send, receive or handle packets. IceNet is asynchronous by nature.*
+- Fully multithreaded and scalable. Each client connected to the server is given it's own threads which send, receive and handle packets. IceNet is asynchronous by nature.*
 - Compact. Initializing the server/client takes only a few lines of code.
 
 Caveats:
@@ -44,7 +44,7 @@ How-to
 
 In IceNet, each client has it's own public and private ID. The public ID is used to identify the client everywhere (on other clients) while the private ID is used by the server to find out the origin and handle packet destinations.
 
-The usage of IceNet in an application is very easy. The project should be linked with the appropiate .lib or .a file (IceNetLib.lib/libIceNetLib.a for release and IceNetLib_d.lib/libIceNetLib_d.a for debug). For development on Linux, also link with -pthread and -lrt. Then, the IceNet headers should be included in the project.
+The usage of IceNet in an application is very easy. The project should be linked with the appropiate .lib or .a file (IceNetLib.lib/libIceNetLib.a for release and IceNetLib_d.lib/libIceNetLib_d.a for debug). For development on Linux, one should also link with -pthread and -lrt. Then, the IceNet headers should be included in the project.
 
 For a server application:
 ```cpp
@@ -73,7 +73,7 @@ ClientSide::SetOnAddRemoteClient( AddRemoteClient );
 ClientSide::SetOnConnectionSucceed( ConnectionSuccessful );
 ClientSide::SetOnConnectionFail( ConnectionFailed );
 
-// These functions are called when a client joins or leaves.
+// These functions are called when a client joins or parts.
 ServerSide::SetOnAddClient( OnJoin );
 ServerSide::SetOnRemoveClient( OnPart );
 ```
@@ -169,7 +169,7 @@ ServerSide::Broadcast( newPacket );
 // Do not delete newPacket!
 ```
 
-More examples can be found within the examples folder.
+More examples can be found within the examples folder (psuedocode).
 
 Future
 ======
