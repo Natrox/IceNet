@@ -50,13 +50,13 @@ bool Thread::Wait( unsigned int time )
 
 Thread::Thread( StartRoutine func, void* arg )
 {
-    pthread_attr_t attr;
+	pthread_attr_t attr;
 
-    sched_param sched;
-    sched_setparam( 0, &sched );
+	sched_param sched;
+	sched_setparam( 0, &sched );
 
-    pthread_attr_init( &attr );
-    pthread_attr_setschedparam( &attr, &sched );
+	pthread_attr_init( &attr );
+	pthread_attr_setschedparam( &attr, &sched );
 
 	int a = pthread_create( &m_ThreadObject, 0, ( void*(*) (void*) )func, arg );
 	(void) a;

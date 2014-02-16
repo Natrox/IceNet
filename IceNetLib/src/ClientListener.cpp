@@ -69,7 +69,7 @@ namespace IceNet
 #endif
 
 #ifdef __linux__
-            socklen_t size = (socklen_t) sizeof( sockaddr );
+			socklen_t size = (socklen_t) sizeof( sockaddr );
 #endif
 			// Accept a new connection (blocking)
 			SOCKET clientSock = accept( NetworkControl::GetSingleton()->m_SocketTCP, 0, 0 );

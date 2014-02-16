@@ -81,8 +81,8 @@ Client::~Client( void )
 
 	if ( m_SocketTCP != 0 )
 	{
-        closesocket( m_SocketTCP );
-    }
+		closesocket( m_SocketTCP );
+	}
 }
 
 THREAD_FUNC Client::KeepAlive( void* client )

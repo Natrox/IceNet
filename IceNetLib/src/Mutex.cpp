@@ -57,10 +57,10 @@ InternalMutexObject& Mutex::GetMutexObject( void )
 
 Mutex::Mutex( void )
 {
-    pthread_mutexattr_t attr;
+	pthread_mutexattr_t attr;
 
-    pthread_mutexattr_init( &attr );
-    pthread_mutexattr_setpshared( &attr, PTHREAD_PROCESS_PRIVATE );
+	pthread_mutexattr_init( &attr );
+	pthread_mutexattr_setpshared( &attr, PTHREAD_PROCESS_PRIVATE );
 
 	pthread_mutex_init( &m_MutexObject, &attr );
 }

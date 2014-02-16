@@ -91,14 +91,14 @@ bool Event::Wait( unsigned int timeInMs )
 {
 	m_EventObject.ieo_Mutex.Lock();
 
-    struct timeval tv;
-    struct timespec ts;
+	struct timeval tv;
+	struct timespec ts;
 
-    gettimeofday( &tv, NULL );
-    ts.tv_sec = time( NULL ) + timeInMs / 1000;
-    ts.tv_nsec = tv.tv_usec * 1000 + 1000 * 1000 * ( timeInMs % 1000 );
-    ts.tv_sec += ts.tv_nsec / ( 1000 * 1000 * 1000 );
-    ts.tv_nsec %= ( 1000 * 1000 * 1000 );
+	gettimeofday( &tv, NULL );
+	ts.tv_sec = time( NULL ) + timeInMs / 1000;
+	ts.tv_nsec = tv.tv_usec * 1000 + 1000 * 1000 * ( timeInMs % 1000 );
+	ts.tv_sec += ts.tv_nsec / ( 1000 * 1000 * 1000 );
+	ts.tv_nsec %= ( 1000 * 1000 * 1000 );
 
 	pthread_mutex_t& mutex = m_EventObject.ieo_Mutex.GetMutexObject();
 
@@ -106,13 +106,13 @@ bool Event::Wait( unsigned int timeInMs )
 
 	if ( timeInMs != 0 )
 	{
-        pthread_cond_timedwait( &m_EventObject.ieo_Cond, &mutex, &ts );
-        succeed = !( errno == ETIMEDOUT );
-    }
+		pthread_cond_timedwait( &m_EventObject.ieo_Cond, &mutex, &ts );
+		succeed = !( errno == ETIMEDOUT );
+	}
 
 	else
 	{
-        succeed = m_EventObject.ieo_Predicate;
+		succeed = m_EventObject.ieo_Predicate;
 	}
 
 	if ( succeed && m_EventObject.ieo_ManualReset == 0 )

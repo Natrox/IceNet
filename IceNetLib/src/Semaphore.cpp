@@ -79,14 +79,14 @@ void Semaphore::Notify( void )
 
 bool Semaphore::Wait( unsigned int timeInMs )
 {
-    struct timeval tv;
-    struct timespec ts;
+	struct timeval tv;
+	struct timespec ts;
 
-    gettimeofday( &tv, NULL );
-    ts.tv_sec = time( NULL ) + timeInMs / 1000;
-    ts.tv_nsec = tv.tv_usec * 1000 + 1000 * 1000 * ( timeInMs % 1000 );
-    ts.tv_sec += ts.tv_nsec / ( 1000 * 1000 * 1000 );
-    ts.tv_nsec %= ( 1000 * 1000 * 1000 );
+	gettimeofday( &tv, NULL );
+	ts.tv_sec = time( NULL ) + timeInMs / 1000;
+	ts.tv_nsec = tv.tv_usec * 1000 + 1000 * 1000 * ( timeInMs % 1000 );
+	ts.tv_sec += ts.tv_nsec / ( 1000 * 1000 * 1000 );
+	ts.tv_nsec %= ( 1000 * 1000 * 1000 );
 
 	sem_timedwait( &m_SemaphoreObject, &ts );
 	return !( errno == ETIMEDOUT );

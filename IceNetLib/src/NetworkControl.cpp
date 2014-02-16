@@ -49,12 +49,12 @@ NetworkControl::NetworkControl( void ) :
 	memset( m_PublicIdClientProxyMap, 0, sizeof( void* ) * USHRT_MAX );
 
 #ifdef __linux__
-    rlimit limits;
+	rlimit limits;
 
-    limits.rlim_cur = 9;
-    limits.rlim_max = 9;
+	limits.rlim_cur = 9;
+	limits.rlim_max = 9;
 
-    setrlimit( RLIMIT_RTPRIO, &limits );
+	setrlimit( RLIMIT_RTPRIO, &limits );
 #endif
 
 	if ( m_RecycleConnection == 0 )
@@ -159,7 +159,7 @@ NetworkControl::ErrorCodes NetworkControl::InitializeServer( const char* listenP
 		}
 	}
 
-    Broadcaster::GetSingleton();
+	Broadcaster::GetSingleton();
 	m_Singleton->m_NetworkThread = new Thread( ServerEntry, 0 );
 
 	++m_InitCount;
@@ -240,7 +240,7 @@ NetworkControl::ErrorCodes NetworkControl::InitializeClient( const char* destina
 		}
 	}
 
-    Broadcaster::GetSingleton();
+	Broadcaster::GetSingleton();
 	m_Singleton->m_NetworkThread = new Thread( ClientEntry, 0 );
 
 	++m_InitCount;

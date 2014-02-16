@@ -47,105 +47,105 @@ namespace IceNet
 };
 
 Broadcaster::Broadcaster( void )
-    :
+	:
    m_StopRequestedEvent( TRUE )
 {}
 
 Broadcaster::~Broadcaster( void )
 {
-    // Delete all remaining packets. We do not need them.
-    if ( m_PacketQueue.size() > 0 )
-    {
-        for ( unsigned int i = 0; i < m_PacketQueue.size(); i++ )
-        {
-            if ( m_PacketQueue.front() != 0 ) delete m_PacketQueue.front();
-            m_PacketQueue.pop();
-        }
-    }
+	// Delete all remaining packets. We do not need them.
+	if ( m_PacketQueue.size() > 0 )
+	{
+		for ( unsigned int i = 0; i < m_PacketQueue.size(); i++ )
+		{
+			if ( m_PacketQueue.front() != 0 ) delete m_PacketQueue.front();
+			m_PacketQueue.pop();
+		}
+	}
 }
 
 Broadcaster* Broadcaster::GetSingleton()
 {
-    if ( m_Singleton == 0 )
-    {
-        m_Singleton = new Broadcaster();
-    }
+	if ( m_Singleton == 0 )
+	{
+		m_Singleton = new Broadcaster();
+	}
 
-    return m_Singleton;
+	return m_Singleton;
 }
 
 void Broadcaster::AddToList( Packet* sourcePacket )
 {
-    // Add a new packet to the queue
-    m_PacketAdditionMutex.Lock();
+	// Add a new packet to the queue
+	m_PacketAdditionMutex.Lock();
 
-    m_PacketQueue.push( sourcePacket );
-    m_PacketQueueSemaphore.Notify();
+	m_PacketQueue.push( sourcePacket );
+	m_PacketQueueSemaphore.Notify();
 
-    m_PacketAdditionMutex.Unlock();
+	m_PacketAdditionMutex.Unlock();
 }
 
 void Broadcaster::ProcessLoop( void )
 {
-    while ( true )
-    {
-        // Wait for either
-        m_PacketQueueSemaphore.Wait( INFINITE );
+	while ( true )
+	{
+		// Wait for either
+		m_PacketQueueSemaphore.Wait( INFINITE );
 
-        // If a stop has been requested...
-        if ( m_StopRequestedEvent.Wait( 0 ) )
-        {
-            // ..close shop
-            return;
-        }
+		// If a stop has been requested...
+		if ( m_StopRequestedEvent.Wait( 0 ) )
+		{
+			// ..close shop
+			return;
+		}
 
-        m_PacketAdditionMutex.Lock();
+		m_PacketAdditionMutex.Lock();
 
-        // Get the front packet and remove it from the queue
-        Packet* outgoingPacket = 0;
+		// Get the front packet and remove it from the queue
+		Packet* outgoingPacket = 0;
 
-        if ( m_PacketQueue.size() > 0 )
-        {
-            outgoingPacket = m_PacketQueue.front();
-            m_PacketQueue.pop();
-        }
+		if ( m_PacketQueue.size() > 0 )
+		{
+			outgoingPacket = m_PacketQueue.front();
+			m_PacketQueue.pop();
+		}
 
-        m_PacketAdditionMutex.Unlock();
+		m_PacketAdditionMutex.Unlock();
 
-        if ( outgoingPacket == 0 ) continue;
+		if ( outgoingPacket == 0 ) continue;
 
-        NetworkControl* net = NetworkControl::GetSingleton();
+		NetworkControl* net = NetworkControl::GetSingleton();
 
-        net->m_ClientAccessMutex.Lock();
+		net->m_ClientAccessMutex.Lock();
 
-        if ( net->m_ClientIds.size() > 0 )
-        {
-            for ( unsigned int i = 0; i < net->m_ClientIds.size(); ++i )
-            {
-                if ( outgoingPacket->GetFlag() == Packet::PF_EXCLUDEORIGIN &&
-                        outgoingPacket->GetClientPrivateId() == net->m_ClientIds[i].cc_PrivateId )
-                {
-                    continue;
-                }
+		if ( net->m_ClientIds.size() > 0 )
+		{
+			for ( unsigned int i = 0; i < net->m_ClientIds.size(); ++i )
+			{
+				if ( outgoingPacket->GetFlag() == Packet::PF_EXCLUDEORIGIN &&
+						outgoingPacket->GetClientPrivateId() == net->m_ClientIds[i].cc_PrivateId )
+				{
+					continue;
+				}
 
-                else if ( outgoingPacket->GetFlag() == Packet::PF_SPECIFIC  &&
-                          outgoingPacket->GetClientPrivateId() != net->m_ClientIds[i].cc_PrivateId )
-                {
-                    continue;
-                }
+				else if ( outgoingPacket->GetFlag() == Packet::PF_SPECIFIC  &&
+						  outgoingPacket->GetClientPrivateId() != net->m_ClientIds[i].cc_PrivateId )
+				{
+					continue;
+				}
 
-                Client* client = net->m_PrivateIdClientMap[ net->m_ClientIds[i].cc_PrivateId ];
-                if ( client == 0 ) continue;
+				Client* client = net->m_PrivateIdClientMap[ net->m_ClientIds[i].cc_PrivateId ];
+				if ( client == 0 ) continue;
 
-                Packet* copy = outgoingPacket->GetCopy();
+				Packet* copy = outgoingPacket->GetCopy();
 
-                client->GetSenderObject()->AddToQueue( copy );
-            }
-        }
+				client->GetSenderObject()->AddToQueue( copy );
+			}
+		}
 
-        net->m_ClientAccessMutex.Unlock();
+		net->m_ClientAccessMutex.Unlock();
 
-        // Cleanup
-        delete outgoingPacket;
-    }
+		// Cleanup
+		delete outgoingPacket;
+	}
 }
