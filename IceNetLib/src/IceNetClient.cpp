@@ -38,24 +38,27 @@ namespace IceNet
 		VOID_WITH_CLIENTPROXY_PARAM g_AddRemote = 0;
 		VOID_WITH_CLIENTPROXY_PARAM g_RemoveRemote = 0;
 
-		int Connect( PCSTR port, PCSTR ip, unsigned int flags = NetworkControl::PROTOCOL_UDP )
+		int Connect( const char* port, const char* ip, unsigned int flags = NetworkControl::PROTOCOL_UDP )
 		{
 			NetworkControl::ErrorCodes error = NetworkControl::InitializeClient( port, ip, (NetworkControl::Flags) flags );
-		
+
 			ConnectionInfo cinfo = { ip, port };
 			if ( error != NetworkControl::ERROR_NONE && g_OnFail != 0 ) g_OnFail( cinfo );
-		
+
 			return (int) error;
 		}
 
 		void Disconnect( void )
 		{
-			if ( NetworkControl::GetSingleton()->m_LocalClient != 0 ) SetEvent( NetworkControl::GetSingleton()->m_LocalClient->GetStopEvent() );
-			WaitForSingleObject( NetworkControl::GetSingleton()->m_NetworkThreadHandle, INFINITE );
+			if ( NetworkControl::GetSingleton()->m_LocalClient != 0 )
+			{
+				NetworkControl::GetSingleton()->m_LocalClient->SetStop();
+			}
 
+			NetworkControl::GetSingleton()->m_NetworkThread->Wait( INFINITE );
 			NetworkControl::Deinitialize();
 
-			WaitForSingleObject( NetworkControl::GetSingleton()->m_RecycleConnection, INFINITE );
+			NetworkControl::GetSingleton()->m_RecycleConnection->Wait( INFINITE );
 
 			if ( g_OnDisconnect != 0 ) g_OnDisconnect();
 		}
@@ -63,12 +66,12 @@ namespace IceNet
 		void SendTCP( Packet* packet )
 		{
 			packet->SetClientPrivateId( NetworkControl::GetSingleton()->m_LocalClient->m_PrivateId );
-		
+
 			packet->SetUDPEnabled( false );
 			NetworkControl::GetSingleton()->m_LocalClient->GetSenderObject()->AddToQueue( packet );
 		}
 
-		void SendUDP( Packet* packet ) 
+		void SendUDP( Packet* packet )
 		{
 			packet->SetClientPrivateId( NetworkControl::GetSingleton()->m_LocalClient->m_PrivateId );
 
@@ -123,34 +126,34 @@ namespace IceNet
 			g_RemoveRemote = fun;
 		}
 
-		inline VOID_WITH_CLIENT_PARAM GetOnConnectionSucceed( void )
+		VOID_WITH_CLIENT_PARAM GetOnConnectionSucceed( void )
 		{
 			return g_OnSucceed;
 		}
 
-		inline VOID_WITH_CONNECTIONINFO_PARAM GetOnConnectionFail( void )
+		VOID_WITH_CONNECTIONINFO_PARAM GetOnConnectionFail( void )
 		{
 			return g_OnFail;
 		}
 
-		inline VOID_WITH_NO_PARAM GetOnDisconnect( void )
+		VOID_WITH_NO_PARAM GetOnDisconnect( void )
 		{
 			return g_OnDisconnect;
 		}
 
-		inline VOID_WITH_CLIENTPROXY_PARAM GetOnAddRemoteClient( void )
+		VOID_WITH_CLIENTPROXY_PARAM GetOnAddRemoteClient( void )
 		{
 			return g_AddRemote;
 		}
 
-		inline VOID_WITH_CLIENTPROXY_PARAM GetOnRemoveRemoteClient( void )
+		VOID_WITH_CLIENTPROXY_PARAM GetOnRemoveRemoteClient( void )
 		{
 			return g_RemoveRemote;
 		}
 
 		void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun )
 		{
-			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun );	
+			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun );
 		}
 	}
 }

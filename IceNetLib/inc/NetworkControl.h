@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
+#include "Threading.h"
 
 #include <vector>
 #include "ClientContainer.h"
@@ -41,7 +41,7 @@
 
 namespace IceNet
 {
-	typedef unsigned short CLIENT_ID; 
+	typedef unsigned short CLIENT_ID;
 
 	// Prototypes
 	class Client;
@@ -86,8 +86,8 @@ namespace IceNet
 
 	public:
 		// Initialization functions
-		static ErrorCodes InitializeServer( PCSTR listenPort, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
-		static ErrorCodes InitializeClient( PCSTR destinationPort, PCSTR ipAddress, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
+		static ErrorCodes InitializeServer( const char* listenPort, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
+		static ErrorCodes InitializeClient( const char* destinationPort, const char* ipAddress, Flags enabledProtocols = (Flags) ( PROTOCOL_TCP | PROTOCOL_UDP ) );
 
 		// Destructor and deinitialization function
 		~NetworkControl( void );
@@ -95,11 +95,11 @@ namespace IceNet
 
 		PacketHandler* GetPacketHandler( void );
 
-		// TCP sending of packages, for sending to server and client respectively. Only use one of these. Overrides packet UDP flag.  
+		// TCP sending of packages, for sending to server and client respectively. Only use one of these. Overrides packet UDP flag.
 		int SendToServerTCP( Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
 		int SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
 
-		// UDP sending of packages, for sending to server and client respectively. Only use one of these.   
+		// UDP sending of packages, for sending to server and client respectively. Only use one of these.
 		int SendToServerUDP( Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
 		int SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
 
@@ -121,8 +121,8 @@ namespace IceNet
 		// Flags
 		int ConnectToHost( void );
 
-		HANDLE m_StopRequestedEvent; 
-		HANDLE m_NetworkThreadHandle;
+		Event m_StopRequestedEvent;
+		Thread* m_NetworkThread;
 		Client* m_LocalClient;
 
 		// Client containment
@@ -134,24 +134,26 @@ namespace IceNet
 		ClientProxy* m_PublicIdClientProxyMap[USHRT_MAX];
 
 		SOCKET m_SocketTCP, m_SocketUDP;
-		static HANDLE* m_RecycleConnection;
+		static Event* m_RecycleConnection;
 
 	private:
 		// Connection information
 		addrinfo* m_MyAddrInfoTCP, *m_MyAddrInfoUDP;
+#ifdef _WIN32
 		WSADATA m_WSAData;
+#endif
 		Flags m_Flags;
 
 		// Packet handler for HANDLER_SYNC
 		PacketHandler* m_PacketHandler;
 
-		CRITICAL_SECTION m_ClientAccessCSec;
+		Mutex m_ClientAccessMutex;
 
 	protected:
 		static NetworkControl* m_Singleton;
 		static int m_InitCount;
 
-		friend DWORD WINAPI ListenerEntry( void* ptr );
+		friend THREAD_FUNC ListenerEntry( void* ptr );
 		friend class Broadcaster;
 		friend class UDPReceiver;
 		friend class PacketSender;
@@ -172,10 +174,10 @@ namespace IceNet
 	};
 
 	// Extern entrypoints for every scenario
-	extern DWORD WINAPI ServerEntry( void* ptr );
-	extern DWORD WINAPI ClientEntry( void* ptr );
-	extern DWORD WINAPI BroadcastEntry( void* ptr );
-	extern DWORD WINAPI ListenerEntry( void* ptr );
+	extern THREAD_FUNC ServerEntry( void* ptr );
+	extern THREAD_FUNC ClientEntry( void* ptr );
+	extern THREAD_FUNC BroadcastEntry( void* ptr );
+	extern THREAD_FUNC ListenerEntry( void* ptr );
 
 	extern unsigned short RandomID( void );
 };

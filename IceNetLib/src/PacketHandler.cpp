@@ -31,12 +31,9 @@ using namespace IceNet;
 PacketHandler::PacketHandler( Client* parentClient ) :
 			  m_ParentClient( parentClient )
 {
-	InitializeCriticalSection( &m_PacketAdditionCSec );
-
 	if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
 	{
-		m_PacketQueueSemaphore = CreateSemaphore( NULL, NULL, LONG_MAX, NULL );
-		m_ThreadHandle = CreateThread( NULL, NULL, PacketHandlerLoop, this, NULL, NULL );
+		m_Thread = new Thread( PacketHandlerLoop, this );
 	}
 }
 
@@ -44,26 +41,24 @@ PacketHandler::~PacketHandler( void )
 {
 	if ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_ASYNC )
 	{
-		WaitForSingleObject( m_ThreadHandle, INFINITE );
+		AddToQueue( 0 );
 
-		CloseHandle( m_ThreadHandle );
-		CloseHandle( m_PacketQueueSemaphore );
+		m_Thread->Wait( INFINITE );
+		delete m_Thread;
 	}
-
-	DeleteCriticalSection( &m_PacketAdditionCSec );
 
 	// Delete all remaining packets. We do not need them.
 	if ( m_PacketQueue.size() > 0 )
 	{
 		for ( unsigned int i = 0; i < m_PacketQueue.size(); i++ )
 		{
-			delete m_PacketQueue.front();
+			if ( m_PacketQueue.front() != 0 ) delete m_PacketQueue.front();
 			m_PacketQueue.pop();
 		}
 	}
 }
 
-DWORD WINAPI PacketHandler::PacketHandlerLoop( void* packetHandler )
+THREAD_FUNC PacketHandler::PacketHandlerLoop( void* packetHandler )
 {
 	if ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC )
 	{
@@ -74,27 +69,26 @@ DWORD WINAPI PacketHandler::PacketHandlerLoop( void* packetHandler )
 
 	while ( true )
 	{
-		const HANDLE waitHandles[] = { ph->m_PacketQueueSemaphore, NetworkControl::GetSingleton()->m_StopRequestedEvent, ph->m_ParentClient->m_StopEvent };
+		ph->m_PacketQueueSemaphore.Wait( INFINITE );
 
-		DWORD waitObject = WaitForMultipleObjects( 3, waitHandles, false, INFINITE );
-
-		if ( waitObject == WAIT_OBJECT_0 + 1 || waitObject == WAIT_OBJECT_0 + 2 )
+		if ( NetworkControl::GetSingleton()->m_StopRequestedEvent.Wait( 0 ) == true ||
+			ph->m_ParentClient->m_StopEvent.Wait( 0 ) == true )
 		{
 			break;
 		}
 
-		EnterCriticalSection( &ph->m_PacketAdditionCSec );
+		ph->m_PacketAdditionMutex.Lock();
 
 		// Get a packet from the queue.
 		Packet* handlePacket = ph->m_PacketQueue.front();
 		ph->m_PacketQueue.pop();
 
-		LeaveCriticalSection( &ph->m_PacketAdditionCSec );
+		ph->m_PacketAdditionMutex.Unlock();
 
 		// Handle the packet if its operation code is recognized
 		PACKET_HANDLING_FUNCTION fun = OpCodeHandler::GetSingleton()->GetOpCodeFunction( handlePacket->GetOpCode() );
-		if ( fun != NULL ) fun( handlePacket );
-		
+		if ( fun != 0 ) fun( handlePacket );
+
 		delete handlePacket;
 	}
 
@@ -103,12 +97,12 @@ DWORD WINAPI PacketHandler::PacketHandlerLoop( void* packetHandler )
 
 void PacketHandler::AddToQueue( Packet* packet )
 {
-	EnterCriticalSection( &m_PacketAdditionCSec );
+	m_PacketAdditionMutex.Lock();
 
 	m_PacketQueue.push( packet );
-	ReleaseSemaphore( m_PacketQueueSemaphore, 1, 0 );
+	m_PacketQueueSemaphore.Notify();
 
-	LeaveCriticalSection( &m_PacketAdditionCSec );
+	m_PacketAdditionMutex.Unlock();
 }
 
 unsigned int PacketHandler::HandlePackets( void )
@@ -120,7 +114,7 @@ unsigned int PacketHandler::HandlePackets( void )
 
 	unsigned int amount = 0;
 
-	EnterCriticalSection( &m_PacketAdditionCSec );
+	m_PacketAdditionMutex.Lock();
 
 	while ( m_PacketQueue.size() > 0 )
 	{
@@ -130,13 +124,13 @@ unsigned int PacketHandler::HandlePackets( void )
 
 		// Handle the packet if its operation code is recognized
 		PACKET_HANDLING_FUNCTION fun = OpCodeHandler::GetSingleton()->GetOpCodeFunction( handlePacket->GetOpCode() );
-		if ( fun != NULL ) fun( handlePacket );
-		
+		if ( fun != 0 ) fun( handlePacket );
+
 		delete handlePacket;
 		amount++;
 	}
 
-	LeaveCriticalSection( &m_PacketAdditionCSec );
+	m_PacketAdditionMutex.Unlock();
 
 	return amount;
 }

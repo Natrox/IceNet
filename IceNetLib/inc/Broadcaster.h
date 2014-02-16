@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
+#include "Threading.h"
 
 #include <queue>
 
@@ -56,14 +56,14 @@ namespace IceNet
 		void ProcessLoop( void );
 
 		// Handles
-		HANDLE m_BroadcastThreadHandle;
-		HANDLE m_StopRequestedEvent;
+		Thread* m_BroadcastThread;
+		Event m_StopRequestedEvent;
 
 	private:
 		std::queue< Packet* > m_PacketQueue;
-		CRITICAL_SECTION m_PacketAdditionCSec;
+		Mutex m_PacketAdditionMutex;
 
-		HANDLE m_PacketQueueSemaphore;
+		Semaphore m_PacketQueueSemaphore;
 		
 	protected:
 		static Broadcaster* m_Singleton;

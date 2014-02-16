@@ -20,7 +20,7 @@
 	THE SOFTWARE.
 */
 
-#pragma once;
+#pragma once
 
 /*
 	ICECAT Networking		v2.0

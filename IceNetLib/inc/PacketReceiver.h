@@ -20,10 +20,10 @@
 	THE SOFTWARE.
 */
 
-#pragma once 
+#pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
+#include "Threading.h"
 
 /*
 	ICECAT Networking		v2.0
@@ -43,9 +43,9 @@ namespace IceNet
 		PacketReceiver( Client* parentClient );
 		~PacketReceiver( void );
 
-		static DWORD WINAPI PacketReceiverLoop( void* packetReceiver );
+		static THREAD_FUNC PacketReceiverLoop( void* packetReceiver );
 
-		HANDLE m_ThreadHandle;
+		Thread* m_Thread;
 
 	private:
 		Client* m_ParentClient;

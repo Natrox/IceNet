@@ -34,20 +34,18 @@
 using namespace IceNet;
 
 Client::Client( CLIENT_ID publicId, CLIENT_ID privateId, bool local, SOCKET socket ) :
+		m_StopEvent( TRUE ),
+		m_Thread( 0 ),
+		m_SocketTCP( socket ),
 		m_PublicId( publicId ),
 		m_PrivateId( privateId ),
-		m_SenderObject( NULL ),
-		m_ReceiverObject( NULL ),
-		m_HandlerObject( NULL ),
-		m_AssociatedObject( NULL ),
-		m_SocketTCP( socket ),
-		m_Local( local ),
-		m_UDPInitialized( false )
+		m_UDPInitialized( false ),
+		m_SenderObject( 0 ),
+		m_ReceiverObject( 0 ),
+		m_HandlerObject( 0 ),
+		m_AssociatedObject( 0 ),
+		m_Local( local )
 {
-	InitializeCriticalSection( &m_AccessCSec );
-
-	m_StopEvent = CreateEvent( NULL, true, false, NULL );
-
 	m_SenderObject = new PacketSender( this );
 	m_ReceiverObject = new PacketReceiver( this );
 
@@ -57,7 +55,7 @@ Client::Client( CLIENT_ID publicId, CLIENT_ID privateId, bool local, SOCKET sock
 	}
 
 	// Create the KeepAlive thread
-	m_ThreadHandle = CreateThread( NULL, NULL, KeepAlive, this, NULL, NULL );
+	m_Thread = new Thread( KeepAlive, this );
 }
 
 Client::~Client( void )
@@ -65,9 +63,6 @@ Client::~Client( void )
 	delete m_SenderObject;
 	delete m_ReceiverObject;
 	delete m_HandlerObject;
-
-	DeleteCriticalSection( &m_AccessCSec );
-	CloseHandle( m_StopEvent );
 
 	if ( m_Local == false )
 	{
@@ -84,15 +79,18 @@ Client::~Client( void )
 		NetworkControl::GetSingleton()->BroadcastToAll( broadcast );
 	}
 
-	if ( m_SocketTCP != NULL ) closesocket( m_SocketTCP );
+	if ( m_SocketTCP != 0 )
+	{
+        closesocket( m_SocketTCP );
+    }
 }
 
-DWORD WINAPI Client::KeepAlive( void* client )
+THREAD_FUNC Client::KeepAlive( void* client )
 {
 	Client* cl = (Client*) client;
 
 	// Simply wait till the client gives the stop signal and then..
-	WaitForSingleObject( cl->m_StopEvent, INFINITE );
+	cl->m_StopEvent.Wait( INFINITE );
 
 	// ..remove the client from the network controls.
 	NetworkControl::GetSingleton()->RemoveClient( cl->m_PublicId, cl->m_PrivateId );
@@ -117,9 +115,9 @@ void Client::SetAssociatedObject( PTR_ANYTHING object )
 
 void Client::SetUDPOrigin( const sockaddr& addr )
 {
-	EnterCriticalSection( &m_AccessCSec );
+	m_AccessMutex.Lock();
 	m_UDPOrigin = addr;
-	LeaveCriticalSection( &m_AccessCSec );
+	m_AccessMutex.Unlock();
 }
 
 sockaddr Client::GetUDPOrigin( void )
@@ -129,15 +127,15 @@ sockaddr Client::GetUDPOrigin( void )
 
 bool Client::CompareUDPOrigin( const sockaddr& addr )
 {
-	EnterCriticalSection( &m_AccessCSec );
+	m_AccessMutex.Lock();
 
 	if ( strcmp( addr.sa_data, m_UDPOrigin.sa_data ) == 0 && addr.sa_family == m_UDPOrigin.sa_family )
 	{
-		LeaveCriticalSection( &m_AccessCSec );
+		m_AccessMutex.Unlock();
 		return true;
 	}
 
-	LeaveCriticalSection( &m_AccessCSec );
+	m_AccessMutex.Unlock();
 
 	return false;
 }
@@ -162,7 +160,7 @@ bool Client::IsLocal( void )
 	return m_Local;
 }
 
-HANDLE Client::GetStopEvent( void )
+Event& Client::GetStopEvent( void )
 {
 	return m_StopEvent;
 }
@@ -180,4 +178,12 @@ CLIENT_ID Client::GetPublicId( void )
 CLIENT_ID Client::GetPrivateId( void )
 {
 	return m_PrivateId;
+}
+
+void Client::SetStop( void )
+{
+	m_StopEvent.Set();
+
+	m_SenderObject->AddToQueue( 0 );
+	m_HandlerObject->AddToQueue( 0 );
 }

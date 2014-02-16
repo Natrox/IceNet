@@ -30,130 +30,122 @@
 
 using namespace IceNet;
 
-Broadcaster* Broadcaster::m_Singleton = NULL;
+Broadcaster* Broadcaster::m_Singleton = 0;
 
 namespace IceNet
 {
-	DWORD WINAPI BroadcastEntry( void* ptr )
+	THREAD_FUNC BroadcastEntry( void* ptr )
 	{
 		// Get a new broadcaster object
 		Broadcaster* bcObject = Broadcaster::GetSingleton();
-		bcObject->m_BroadcastThreadHandle = GetCurrentThread();
 
 		// Loop 'forever'
 		bcObject->ProcessLoop();
-
-		// Delete the broadcaster
-		delete bcObject;
 
 		return 1;
 	}
 };
 
 Broadcaster::Broadcaster( void )
-{
-	m_PacketQueueSemaphore = CreateSemaphore( NULL, NULL, LONG_MAX, NULL );
-	m_StopRequestedEvent = CreateEvent( NULL, true, false, NULL );
-
-	InitializeCriticalSection( &m_PacketAdditionCSec );
-}
+    :
+   m_StopRequestedEvent( TRUE )
+{}
 
 Broadcaster::~Broadcaster( void )
 {
-	CloseHandle( m_PacketQueueSemaphore );
-	CloseHandle( m_StopRequestedEvent );
-
-	// Delete all remaining packets. We do not need them.
-	if ( m_PacketQueue.size() > 0 )
-	{
-		for ( unsigned int i = 0; i < m_PacketQueue.size(); i++ )
-		{
-			delete m_PacketQueue.front();
-			m_PacketQueue.pop();
-		}
-	}
-
-	DeleteCriticalSection( &m_PacketAdditionCSec );
+    // Delete all remaining packets. We do not need them.
+    if ( m_PacketQueue.size() > 0 )
+    {
+        for ( unsigned int i = 0; i < m_PacketQueue.size(); i++ )
+        {
+            if ( m_PacketQueue.front() != 0 ) delete m_PacketQueue.front();
+            m_PacketQueue.pop();
+        }
+    }
 }
 
 Broadcaster* Broadcaster::GetSingleton()
 {
-	if ( m_Singleton == 0 )
-	{
-		m_Singleton = new Broadcaster();
-	}
+    if ( m_Singleton == 0 )
+    {
+        m_Singleton = new Broadcaster();
+    }
 
-	return m_Singleton;
+    return m_Singleton;
 }
 
 void Broadcaster::AddToList( Packet* sourcePacket )
 {
-	// Add a new packet to the queue
-	EnterCriticalSection( &m_PacketAdditionCSec );
+    // Add a new packet to the queue
+    m_PacketAdditionMutex.Lock();
 
-	m_PacketQueue.push( sourcePacket );
-	ReleaseSemaphore( m_PacketQueueSemaphore, 1, NULL );
+    m_PacketQueue.push( sourcePacket );
+    m_PacketQueueSemaphore.Notify();
 
-	LeaveCriticalSection( &m_PacketAdditionCSec );
+    m_PacketAdditionMutex.Unlock();
 }
 
 void Broadcaster::ProcessLoop( void )
 {
-	while ( true )
-	{
-		// Const list of handles to wait on
-		const HANDLE waitHandles[] = { m_PacketQueueSemaphore, m_StopRequestedEvent };
+    while ( true )
+    {
+        // Wait for either
+        m_PacketQueueSemaphore.Wait( INFINITE );
 
-		// Wait for either
-		DWORD waitObject = WaitForMultipleObjects( 2, waitHandles, false, INFINITE );
-		
-		// If a stop has been requested...
-		if ( waitObject == WAIT_OBJECT_0 + 1 )
-		{
-			// ..close shop
-			return;
-		}
+        // If a stop has been requested...
+        if ( m_StopRequestedEvent.Wait( 0 ) )
+        {
+            // ..close shop
+            return;
+        }
 
-		EnterCriticalSection( &m_PacketAdditionCSec );
+        m_PacketAdditionMutex.Lock();
 
-		// Get the front packet and remove it from the queue
-		Packet* outgoingPacket = m_PacketQueue.front();
-		m_PacketQueue.pop();
+        // Get the front packet and remove it from the queue
+        Packet* outgoingPacket = 0;
 
-		LeaveCriticalSection( &m_PacketAdditionCSec );
+        if ( m_PacketQueue.size() > 0 )
+        {
+            outgoingPacket = m_PacketQueue.front();
+            m_PacketQueue.pop();
+        }
 
-		NetworkControl* net = NetworkControl::GetSingleton();
+        m_PacketAdditionMutex.Unlock();
 
-		EnterCriticalSection( &net->m_ClientAccessCSec );
+        if ( outgoingPacket == 0 ) continue;
 
-		if ( net->m_ClientIds.size() > 0 )
-		{
-			for ( unsigned int i = 0; i < net->m_ClientIds.size(); ++i )
-			{
-				if ( outgoingPacket->GetFlag() == Packet::PF_EXCLUDEORIGIN && 
-					outgoingPacket->GetClientPrivateId() == net->m_ClientIds[i].cc_PrivateId )
-				{
-					continue;
-				}
+        NetworkControl* net = NetworkControl::GetSingleton();
 
-				else if ( outgoingPacket->GetFlag() == Packet::PF_SPECIFIC  && 
-					outgoingPacket->GetClientPrivateId() != net->m_ClientIds[i].cc_PrivateId )
-				{
-					continue;
-				}
+        net->m_ClientAccessMutex.Lock();
 
-				Client* client = net->m_PrivateIdClientMap[ net->m_ClientIds[i].cc_PrivateId ];
-				if ( client == NULL ) continue;
+        if ( net->m_ClientIds.size() > 0 )
+        {
+            for ( unsigned int i = 0; i < net->m_ClientIds.size(); ++i )
+            {
+                if ( outgoingPacket->GetFlag() == Packet::PF_EXCLUDEORIGIN &&
+                        outgoingPacket->GetClientPrivateId() == net->m_ClientIds[i].cc_PrivateId )
+                {
+                    continue;
+                }
 
-				Packet* copy = outgoingPacket->GetCopy();
+                else if ( outgoingPacket->GetFlag() == Packet::PF_SPECIFIC  &&
+                          outgoingPacket->GetClientPrivateId() != net->m_ClientIds[i].cc_PrivateId )
+                {
+                    continue;
+                }
 
-				client->GetSenderObject()->AddToQueue( copy );
-			}
-		}
+                Client* client = net->m_PrivateIdClientMap[ net->m_ClientIds[i].cc_PrivateId ];
+                if ( client == 0 ) continue;
 
-		LeaveCriticalSection( &net->m_ClientAccessCSec );
+                Packet* copy = outgoingPacket->GetCopy();
 
-		// Cleanup
-		delete outgoingPacket;
-	}
+                client->GetSenderObject()->AddToQueue( copy );
+            }
+        }
+
+        net->m_ClientAccessMutex.Unlock();
+
+        // Cleanup
+        delete outgoingPacket;
+    }
 }

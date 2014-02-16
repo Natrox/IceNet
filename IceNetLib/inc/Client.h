@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
+#include "Threading.h"
 
 #include <string>
 
@@ -42,7 +42,7 @@
 namespace IceNet
 {
 	// Typedefs
-	typedef unsigned short CLIENT_ID; 
+	typedef unsigned short CLIENT_ID;
 	typedef void* PTR_ANYTHING;
 
 	// Prototypes
@@ -70,7 +70,7 @@ namespace IceNet
 		~Client( void );
 
 		// This function wakes up and kills the client if certain conditions are met
-		static DWORD WINAPI KeepAlive( void* client );
+		static THREAD_FUNC KeepAlive( void* client );
 		SOCKET GetSocket( void );
 
 		// This allows you to store and retrieve any kind of object
@@ -80,26 +80,27 @@ namespace IceNet
 		// We need to know the UDP origin to send UDP data back, so we'll need these functions
 		sockaddr GetUDPOrigin( void );
 		bool CompareUDPOrigin( const sockaddr& addr );
+		void SetStop( void );
 
 		// Check if the client is local, e.g. if the client is created on a client-side configuration.
 		bool IsLocal( void );
-		
+
 		// IP address
 		std::string GetIPAddress( void );
 
 		// Getters
-		HANDLE GetStopEvent( void );
+		Event& GetStopEvent( void );
 		CLIENT_ID GetPublicId( void );
 		CLIENT_ID GetPrivateId( void );
 
 	private:
-		HANDLE m_StopEvent;
-		HANDLE m_ThreadHandle;
+		Event m_StopEvent;
+		Thread* m_Thread;
 
 		SOCKET m_SocketTCP;
 		CLIENT_ID m_PublicId;
 		CLIENT_ID m_PrivateId;
-		
+
 		sockaddr m_UDPOrigin;
 		bool m_UDPInitialized;
 		std::string m_IP;
@@ -109,7 +110,7 @@ namespace IceNet
 		PacketHandler* m_HandlerObject;
 
 		mutable PTR_ANYTHING m_AssociatedObject;
-		CRITICAL_SECTION m_AccessCSec;
+		Mutex m_AccessMutex;
 
 		bool m_Local;
 
@@ -137,7 +138,7 @@ namespace IceNet
 		friend void ServerSide::SendTCP( Packet* packet, bool deletePacket );
 		friend void ServerSide::SendUDP( Packet* packet, bool deletePacket );
 
-		friend DWORD WINAPI ClientEntry( void* ptr );
-		friend DWORD WINAPI ListenerEntry( void* ptr );
+		friend THREAD_FUNC ClientEntry( void* ptr );
+		friend THREAD_FUNC ListenerEntry( void* ptr );
 	};
 };

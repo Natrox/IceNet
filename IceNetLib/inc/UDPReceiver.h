@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
+#include "Threading.h"
 
 #include <queue>
 
@@ -48,7 +48,7 @@ namespace IceNet
 		void ProcessLoop( void );
 
 		// Handles
-		HANDLE m_UDPThreadHandle;
+		Thread* m_UDPThread;
 
 		static UDPReceiver* m_Singleton;
 

@@ -24,7 +24,7 @@
 
 using namespace IceNet;
 
-OpCodeHandler* OpCodeHandler::m_Singleton = NULL;
+OpCodeHandler* OpCodeHandler::m_Singleton = 0;
 
 OpCodeHandler::OpCodeHandler( void )
 {
@@ -36,7 +36,7 @@ OpCodeHandler::~OpCodeHandler( void )
 
 OpCodeHandler* OpCodeHandler::GetSingleton( void )
 {
-	if ( m_Singleton == NULL )
+	if ( m_Singleton == 0 )
 	{
 		m_Singleton = new OpCodeHandler();
 	}

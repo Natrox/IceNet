@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
 
 /*
 	ICECAT Networking		v2.0
@@ -38,7 +37,7 @@ namespace IceNet
 {
 	struct ConnectionInfo
 	{
-		PCSTR hostName;
-		PCSTR port;
+		const char* hostName;
+		const char* port;
 	};
 }

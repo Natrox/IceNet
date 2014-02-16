@@ -30,15 +30,14 @@
 
 using namespace IceNet;
 
-UDPReceiver* UDPReceiver::m_Singleton = NULL;
+UDPReceiver* UDPReceiver::m_Singleton = 0;
 
 namespace IceNet
 {
-	DWORD WINAPI UDPReceiverEntry( void* ptr )
+	THREAD_FUNC UDPReceiverEntry( void* ptr )
 	{
 		// Get a new broadcaster object
 		UDPReceiver* urObject = UDPReceiver::GetSingleton();
-		urObject->m_UDPThreadHandle = GetCurrentThread();
 
 		// Loop 'forever'
 		urObject->ProcessLoop();
@@ -76,22 +75,18 @@ void UDPReceiver::ProcessLoop( void )
 
 	while ( true )
 	{
-		const HANDLE waitHandles[] = { NetworkControl::GetSingleton()->m_StopRequestedEvent };
-
-		DWORD waitObject = WaitForMultipleObjects( 1, waitHandles, false, 0 );
-
-		if ( waitObject == WAIT_OBJECT_0 )
+		if ( NetworkControl::GetSingleton()->m_StopRequestedEvent.Wait( 0 ) == true )
 		{
 			break;
 		}
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
-
+		
 		FD_ZERO( &readfs );
 		FD_SET( net->m_SocketUDP, &readfs );
 
-		int time = select( net->m_SocketUDP, &readfs, 0, 0, &timeout );
+		int time = select( net->m_SocketUDP + 1, &readfs, 0, 0, &timeout );
 		if ( time == 0 || time == SOCKET_ERROR ) continue;
 
 		Packet* pack = new Packet();
@@ -103,7 +98,7 @@ void UDPReceiver::ProcessLoop( void )
 		int sizeRead = 0;
 
 		sockaddr orig;
-		int b = sizeof ( orig );
+		socklen_t b = sizeof ( orig );
 
 		bool leave = false;
 
@@ -116,11 +111,11 @@ void UDPReceiver::ProcessLoop( void )
 		}
 
 		unsigned short size = *( (unsigned short*) ( mnumber + 2 ) );
-		
+
 		if ( ( mnumber[0] != 'I' || mnumber[1] != 'S' ) )
 		{
 			recvfrom( net->m_SocketUDP, mnumber, 1, 0, &orig, &b );
-			
+
 			delete pack;
 			continue;
 		}
@@ -134,7 +129,7 @@ void UDPReceiver::ProcessLoop( void )
 		{
 			sizeRead = recvfrom( net->m_SocketUDP, data + totalReceivableSize-sizeLeft, sizeLeft, 0, &orig, &b );
 			if ( sizeRead == -1 ) { leave = true; break; }
-			
+
 			sizeLeft -= sizeRead;
 
 			if ( sizeRead <= 0 )
@@ -163,18 +158,18 @@ void UDPReceiver::ProcessLoop( void )
 
 		bool packSafeToDelete = true;
 
-		EnterCriticalSection( &net->m_ClientAccessCSec );
+		net->m_ClientAccessMutex.Lock();
 
 		Client* client = net->m_PrivateIdClientMap[ pack->GetClientPrivateId() ];
-		
-		if ( client != NULL )
+
+		if ( client != 0 )
 		{
-			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) ) 
+			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
 			{
 				client->GetHandlerObject()->AddToQueue( pack );
 				packSafeToDelete = false;
 			}
-			
+
 			if ( client->m_UDPInitialized == false )
 			{
 				client->m_UDPInitialized = true;
@@ -185,15 +180,15 @@ void UDPReceiver::ProcessLoop( void )
 		else if ( net->m_LocalClient != 0 )
 		{
 			client = net->m_LocalClient;
-			
-			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) ) 
+
+			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
 			{
 				client->GetHandlerObject()->AddToQueue( pack );
 				packSafeToDelete = false;
 			}
 		}
 
-		if ( ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) ) 
+		if ( ( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::HANDLER_SYNC ) )
 		{
 			NetworkControl::GetSingleton()->GetPacketHandler()->AddToQueue( pack );
 			packSafeToDelete = false;
@@ -204,6 +199,6 @@ void UDPReceiver::ProcessLoop( void )
 			delete pack;
 		}
 
-		LeaveCriticalSection( &net->m_ClientAccessCSec );	
+		net->m_ClientAccessMutex.Unlock();
 	}
 }

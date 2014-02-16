@@ -49,7 +49,7 @@ namespace IceNet
 		return id;
 	}
 
-	DWORD WINAPI ListenerEntry( void* ptr )
+	THREAD_FUNC ListenerEntry( void* ptr )
 	{
 		srand( (unsigned int) time( 0 ) );
 		rand();
@@ -57,20 +57,26 @@ namespace IceNet
 		while ( true )
 		{
 			// Poll for stop condition
-			if ( WaitForSingleObject( NetworkControl::GetSingleton()->m_StopRequestedEvent, 0 ) == WAIT_OBJECT_0 )
+			if ( NetworkControl::GetSingleton()->m_StopRequestedEvent.Wait( 0 ) )
 			{
 				break;
 			}
 
 			sockaddr tcpOrigin;
-			int size = (int) sizeof( sockaddr );
 
+#ifdef _WIN32
+			int size = (int) sizeof( sockaddr );
+#endif
+
+#ifdef __linux__
+            socklen_t size = (socklen_t) sizeof( sockaddr );
+#endif
 			// Accept a new connection (blocking)
-			SOCKET clientSock = accept( NetworkControl::GetSingleton()->m_SocketTCP, NULL, NULL );
+			SOCKET clientSock = accept( NetworkControl::GetSingleton()->m_SocketTCP, 0, 0 );
 
 			// Get some data from the peer
 			getpeername( clientSock, &tcpOrigin, &size );
-			
+
 			// If something went wrong, simply continue;
 			if ( clientSock == -1 )
 			{

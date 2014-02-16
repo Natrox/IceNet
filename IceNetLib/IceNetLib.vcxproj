@@ -24,17 +24,23 @@
     <ClInclude Include="inc\ClientContainer.h" />
     <ClInclude Include="inc\ClientProxy.h" />
     <ClInclude Include="inc\ConnectionInfo.h" />
+    <ClInclude Include="inc\Event.h" />
     <ClInclude Include="inc\IceNetClient.h" />
     <ClInclude Include="inc\IceNetServer.h" />
     <ClInclude Include="inc\IceNetTypedefs.h" />
     <ClInclude Include="inc\Modules.h" />
+    <ClInclude Include="inc\Mutex.h" />
     <ClInclude Include="inc\NetworkControl.h" />
     <ClInclude Include="inc\OpCodeHandler.h" />
     <ClInclude Include="inc\Packet.h" />
     <ClInclude Include="inc\PacketHandler.h" />
     <ClInclude Include="inc\PacketReceiver.h" />
     <ClInclude Include="inc\PacketSender.h" />
+    <ClInclude Include="inc\Platforms.h" />
+    <ClInclude Include="inc\Semaphore.h" />
     <ClInclude Include="inc\StandardFunctions.h" />
+    <ClInclude Include="inc\Thread.h" />
+    <ClInclude Include="inc\Threading.h" />
     <ClInclude Include="inc\UDPReceiver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -43,15 +49,19 @@
     <ClCompile Include="src\ClientListener.cpp" />
     <ClCompile Include="src\ClientProxy.cpp" />
     <ClCompile Include="src\EntryPoints.cpp" />
+    <ClCompile Include="src\Event.cpp" />
     <ClCompile Include="src\IceNetClient.cpp" />
     <ClCompile Include="src\IceNetServer.cpp" />
+    <ClCompile Include="src\Mutex.cpp" />
     <ClCompile Include="src\NetworkControl.cpp" />
     <ClCompile Include="src\OpCodeHandler.cpp" />
     <ClCompile Include="src\Packet.cpp" />
     <ClCompile Include="src\PacketHandler.cpp" />
     <ClCompile Include="src\PacketReceiver.cpp" />
     <ClCompile Include="src\PacketSender.cpp" />
+    <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\StandardFunctions.cpp" />
+    <ClCompile Include="src\Thread.cpp" />
     <ClCompile Include="src\UDPReceiver.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

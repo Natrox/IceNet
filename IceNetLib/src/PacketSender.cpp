@@ -30,54 +30,48 @@ using namespace IceNet;
 PacketSender::PacketSender( Client* parentClient ) :
 			  m_ParentClient( parentClient )
 {
-	InitializeCriticalSection( &m_PacketAdditionCSec );
-
-	m_PacketQueueSemaphore = CreateSemaphore( NULL, NULL, LONG_MAX, NULL );
-	m_ThreadHandle = CreateThread( NULL, NULL, PacketSenderLoop, this, NULL, NULL );
+	m_Thread = new Thread( PacketSenderLoop, this );
 }
 
 PacketSender::~PacketSender( void )
 {
-	WaitForSingleObject( m_ThreadHandle, INFINITE );
+	AddToQueue( 0 );
 
-	CloseHandle( m_ThreadHandle );
-	CloseHandle( m_PacketQueueSemaphore );
-
-	DeleteCriticalSection( &m_PacketAdditionCSec );
+	m_Thread->Wait( INFINITE );
+	delete m_Thread;
 
 	// Delete all remaining packets. We do not need them.
 	if ( m_PacketQueue.size() > 0 )
 	{
 		for ( unsigned int i = 0; i < m_PacketQueue.size(); i++ )
 		{
-			delete m_PacketQueue.front();
+			if ( m_PacketQueue.front() != 0 ) delete m_PacketQueue.front();
 			m_PacketQueue.pop();
 		}
 	}
 }
 
-DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
+THREAD_FUNC PacketSender::PacketSenderLoop( void* packetSender )
 {
 	PacketSender* ps = (PacketSender*) packetSender;
 
 	while ( true )
 	{
-		const HANDLE waitHandles[] = { ps->m_PacketQueueSemaphore, NetworkControl::GetSingleton()->m_StopRequestedEvent, ps->m_ParentClient->m_StopEvent };
+		ps->m_PacketQueueSemaphore.Wait( INFINITE );
 
-		DWORD waitObject = WaitForMultipleObjects( 3, waitHandles, false, INFINITE );
-
-		if ( waitObject == WAIT_OBJECT_0 + 1 || waitObject == WAIT_OBJECT_0 + 2 )
+		if ( NetworkControl::GetSingleton()->m_StopRequestedEvent.Wait( 0 ) == true ||
+			ps->m_ParentClient->m_StopEvent.Wait( 0 ) == true )
 		{
 			break;
 		}
 
-		EnterCriticalSection( &ps->m_PacketAdditionCSec );
-		
+		ps->m_PacketAdditionMutex.Lock();
+
 		// Get a packet from the queue.
 		Packet* outgoingPacket = ps->m_PacketQueue.front();
 		ps->m_PacketQueue.pop();
 
-		LeaveCriticalSection( &ps->m_PacketAdditionCSec );
+		ps->m_PacketAdditionMutex.Unlock();
 
 		if ( ps->m_ParentClient->IsLocal() == false )
 		{
@@ -85,7 +79,7 @@ DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
 			if ( outgoingPacket->GetUDPEnabled() == false )
 			{
 				int code = NetworkControl::GetSingleton()->SendToClientTCP( ps->m_ParentClient->m_PrivateId, outgoingPacket );
-			
+
 				if ( code <= 0 )
 				{
 					return 1;
@@ -96,7 +90,7 @@ DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
 			else
 			{
 				int code = NetworkControl::GetSingleton()->SendToClientUDP( ps->m_ParentClient->m_PrivateId, outgoingPacket );
-			
+
 				if ( code <= 0 )
 				{
 					return 1;
@@ -109,7 +103,7 @@ DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
 			if ( outgoingPacket->GetUDPEnabled() == false )
 			{
 				int code = NetworkControl::GetSingleton()->SendToServerTCP( outgoingPacket );
-			
+
 				if ( code <= 0 )
 				{
 					return 1;
@@ -119,7 +113,7 @@ DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
 			else
 			{
 				int code = NetworkControl::GetSingleton()->SendToServerUDP( outgoingPacket );
-			
+
 				if ( code <= 0 )
 				{
 					return 1;
@@ -133,10 +127,10 @@ DWORD WINAPI PacketSender::PacketSenderLoop( void* packetSender )
 
 void PacketSender::AddToQueue( Packet* packet )
 {
-	EnterCriticalSection( &m_PacketAdditionCSec );
+	m_PacketAdditionMutex.Lock();
 
 	m_PacketQueue.push( packet );
-	ReleaseSemaphore( m_PacketQueueSemaphore, 1, 0 );
+	m_PacketQueueSemaphore.Notify();
 
-	LeaveCriticalSection( &m_PacketAdditionCSec );
+	m_PacketAdditionMutex.Unlock();
 }

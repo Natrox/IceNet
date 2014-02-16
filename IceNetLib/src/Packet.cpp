@@ -26,9 +26,9 @@ using namespace IceNet;
 
 Packet::Packet( void ) :
 		m_Offset( sizeof( unsigned short ) * 5 + sizeof( unsigned char ) ),
+		m_MaxSize( INITIAL_ALLOC ),
 		m_StreamPosition( m_Offset ),
-		m_Flag( PF_FREE ),
-		m_MaxSize( INITIAL_ALLOC )
+		m_Flag( PF_FREE )
 {
 	// Allocate INITIAL_ALLOC for m_Data
 	m_Data = (char*) malloc( INITIAL_ALLOC );
@@ -49,10 +49,10 @@ Packet::Packet( void ) :
 }
 
 Packet::Packet( Packet* pack ) :
-		m_Offset( pack->m_Offset ),
-		m_StreamPosition( pack->m_StreamPosition ),
-		m_Flag( pack->m_Flag ),
-		m_MaxSize( pack->m_MaxSize )
+		m_Offset( sizeof( unsigned short ) * 5 + sizeof( unsigned char ) ),
+		m_MaxSize( INITIAL_ALLOC ),
+		m_StreamPosition( m_Offset ),
+		m_Flag( PF_FREE )
 {
 	m_Data = (char*) malloc( m_MaxSize );
 	memcpy( m_Data, pack->m_Data, m_MaxSize );
@@ -70,6 +70,7 @@ Packet::Packet( Packet* pack ) :
 Packet::~Packet( void )
 {
 	free( m_Data );
+	m_Data = 0;
 }
 
 void Packet::SetClientPrivateId( const CLIENT_ID& id )
@@ -197,7 +198,7 @@ void Packet::BorrowFromDataStream( char* dataStream )
 	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
 }
 
-inline void Packet::ResizeCheck( unsigned short size )
+void Packet::ResizeCheck( unsigned short size )
 {
 	bool resize = false;
 
@@ -208,7 +209,7 @@ inline void Packet::ResizeCheck( unsigned short size )
 		resize = true;
 	}
 
-	if ( resize ) 
+	if ( resize )
 	{
 		m_Data = (char*) realloc( m_Data, (size_t) m_MaxSize );
 

@@ -24,9 +24,7 @@
 
 #include <vector>
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-
+#include "Platforms.h"
 #include "NetworkControl.h"
 
 #include "Client.h"
@@ -42,13 +40,13 @@
 	file IceNetClient.h:
 
 	This file is the interface to the client-side functions of IceNet.
-	
+
 	To connect to a server running IceNet, use Connect( .. ).
 	To disconnect, use Disconnect( void ).
 
 	To link operation codes to functions, use the LinkOpCodeFunction( ... ) function,
 	and supply a function with the necessary parameters (found in IceNetTypedefs.h).
-	
+
 	Several classes and structs are available;
 
 	Client,
@@ -58,7 +56,7 @@
 	Packet
 
 	** WARNING **
-	You MUST set up callbacks before you connect to a server. 
+	You MUST set up callbacks before you connect to a server.
 	These callback setting functions are not thread-safe by default!
 */
 
@@ -66,7 +64,7 @@ namespace IceNet
 {
 	namespace ClientSide
 	{
-		extern int Connect( PCSTR port, PCSTR ip, unsigned int flags );
+		extern int Connect( const char* port, const char* ip, unsigned int flags );
 		extern void Disconnect( void );
 
 		extern void SendTCP( Packet* packet );
@@ -85,12 +83,12 @@ namespace IceNet
 		extern void SetOnAddRemoteClient( VOID_WITH_CLIENTPROXY_PARAM fun );
 		extern void SetOnRemoveRemoteClient( VOID_WITH_CLIENTPROXY_PARAM fun );
 
-		extern inline VOID_WITH_CLIENT_PARAM GetOnConnectionSucceed( void );
-		extern inline VOID_WITH_CONNECTIONINFO_PARAM GetOnConnectionFail( void );
-		extern inline VOID_WITH_NO_PARAM GetOnDisconnect( void );
+		extern VOID_WITH_CLIENT_PARAM GetOnConnectionSucceed( void );
+		extern VOID_WITH_CONNECTIONINFO_PARAM GetOnConnectionFail( void );
+		extern VOID_WITH_NO_PARAM GetOnDisconnect( void );
 
-		extern inline VOID_WITH_CLIENTPROXY_PARAM GetOnAddRemoteClient( void );
-		extern inline VOID_WITH_CLIENTPROXY_PARAM GetOnRemoveRemoteClient( void );
+		extern VOID_WITH_CLIENTPROXY_PARAM GetOnAddRemoteClient( void );
+		extern VOID_WITH_CLIENTPROXY_PARAM GetOnRemoveRemoteClient( void );
 
 		extern void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun );
 	}

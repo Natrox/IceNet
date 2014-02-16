@@ -20,10 +20,10 @@
 	THE SOFTWARE.
 */
 
-#pragma once 
+#pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
+#include "Threading.h"
 
 #include <queue>
 
@@ -46,17 +46,16 @@ namespace IceNet
 		PacketSender( Client* parentClient );
 		~PacketSender( void );
 
-		static DWORD WINAPI PacketSenderLoop( void* packetSender );
+		static THREAD_FUNC PacketSenderLoop( void* packetSender );
 		void AddToQueue( Packet* packet );
 
-		HANDLE m_ThreadHandle;
+		Thread* m_Thread;
 
 	private:
 		Client* m_ParentClient;
 		std::queue< Packet* > m_PacketQueue;
 
-		HANDLE m_PacketQueueSemaphore;
-
-		CRITICAL_SECTION m_PacketAdditionCSec;
+		Semaphore m_PacketQueueSemaphore;
+		Mutex m_PacketAdditionMutex;
 	};
 };

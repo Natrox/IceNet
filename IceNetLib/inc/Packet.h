@@ -20,10 +20,9 @@
 	THE SOFTWARE.
 */
 
-#pragma once 
+#pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
 
 /*
 	ICECAT Networking		v2.0
@@ -49,7 +48,7 @@ typedef void* POINTER_TO_DATA;
 
 namespace IceNet
 {
-	typedef unsigned short CLIENT_ID; 
+	typedef unsigned short CLIENT_ID;
 
 	class Client;
 
@@ -126,14 +125,14 @@ namespace IceNet
 		char* GetDataStream( void );
 
 		// Construct the package from a string
-		void SetFromDataStream( char* dataStream, unsigned short sizeOfData ); 
+		void SetFromDataStream( char* dataStream, unsigned short sizeOfData );
 		void BorrowFromDataStream( char* dataStream );
 
 	private:
 		void SetOpCodeInternal( const unsigned short& opCode );
 
 		// Checks if the current size is adequate for new objects
-		inline void ResizeCheck( unsigned short size );
+		void ResizeCheck( unsigned short size );
 
 		const unsigned short m_Offset;
 		unsigned short m_MaxSize;
@@ -153,7 +152,7 @@ namespace IceNet
 		// Assignment operator overloading, to fix a warning.
 		const Packet& operator=( const Packet& packInstance );
 
-		friend DWORD WINAPI ListenerEntry( void* ptr );
+		friend THREAD_FUNC ListenerEntry( void* ptr );
 		friend class Client;
 		friend void ReceiveID( Packet* pack );
 	};

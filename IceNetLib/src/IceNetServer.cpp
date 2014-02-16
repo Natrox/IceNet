@@ -34,10 +34,10 @@ namespace IceNet
 		VOID_WITH_CLIENT_PARAM g_Add = 0;
 		VOID_WITH_CLIENT_PARAM g_Remove = 0;
 
-		int Initialize( PCSTR port, unsigned int flags = NetworkControl::PROTOCOL_UDP )
+		int Initialize( const char* port, unsigned int flags = NetworkControl::PROTOCOL_UDP )
 		{
 			NetworkControl::ErrorCodes error = NetworkControl::InitializeServer( port, (NetworkControl::Flags) flags );
-		
+
 			return (int) error;
 		}
 
@@ -116,20 +116,20 @@ namespace IceNet
 		{
 			g_Remove = fun;
 		}
-	
-		inline VOID_WITH_CLIENT_PARAM GetOnAddClient( void )
+
+		VOID_WITH_CLIENT_PARAM GetOnAddClient( void )
 		{
 			return g_Add;
 		}
 
-		inline VOID_WITH_CLIENT_PARAM GetOnRemoveClient( void )
+		VOID_WITH_CLIENT_PARAM GetOnRemoveClient( void )
 		{
 			return g_Remove;
 		}
 
 		void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun )
 		{
-			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun );	
+			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun );
 		}
 	}
 }

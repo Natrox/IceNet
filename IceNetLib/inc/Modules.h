@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
 
 /*
 	ICECAT Networking		v2.0
@@ -35,7 +34,7 @@
 
 namespace IceNet
 {
-	extern DWORD WINAPI BroadcastEntry( void* ptr );
-	extern DWORD WINAPI ListenerEntry( void* ptr );
-	extern DWORD WINAPI UDPReceiverEntry( void* ptr );
+	extern THREAD_FUNC BroadcastEntry( void* ptr );
+	extern THREAD_FUNC ListenerEntry( void* ptr );
+	extern THREAD_FUNC UDPReceiverEntry( void* ptr );
 };

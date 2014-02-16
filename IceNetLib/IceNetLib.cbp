@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="IceNetLib" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="ReleaseLib LINUX">
+				<Option output="lib/IceNetLib" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-O2" />
+					<Add option="-O1" />
+					<Add option="-O" />
+					<Add option="-std=c++98" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_CONSOLE" />
+				</Compiler>
+			</Target>
+			<Target title="DebugLib LINUX">
+				<Option output="lib/IceNetLib_d" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-std=c++98" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_CONSOLE" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++98" />
+			<Add option="-c" />
+			<Add option="-m32" />
+			<Add option="-D__linux__" />
+			<Add directory="inc" />
+			<Add directory="src" />
+		</Compiler>
+		<Linker>
+			<Add option="-pthreads" />
+			<Add option="-lrt" />
+			<Add option="-m32" />
+		</Linker>
+		<Unit filename="inc/Broadcaster.h" />
+		<Unit filename="inc/Client.h" />
+		<Unit filename="inc/ClientContainer.h" />
+		<Unit filename="inc/ClientProxy.h" />
+		<Unit filename="inc/ConnectionInfo.h" />
+		<Unit filename="inc/Event.h" />
+		<Unit filename="inc/IceNetClient.h" />
+		<Unit filename="inc/IceNetServer.h" />
+		<Unit filename="inc/IceNetTypedefs.h" />
+		<Unit filename="inc/Modules.h" />
+		<Unit filename="inc/Mutex.h" />
+		<Unit filename="inc/NetworkControl.h" />
+		<Unit filename="inc/OpCodeHandler.h" />
+		<Unit filename="inc/Packet.h" />
+		<Unit filename="inc/PacketHandler.h" />
+		<Unit filename="inc/PacketReceiver.h" />
+		<Unit filename="inc/PacketSender.h" />
+		<Unit filename="inc/Semaphore.h" />
+		<Unit filename="inc/StandardFunctions.h" />
+		<Unit filename="inc/Thread.h" />
+		<Unit filename="inc/Threading.h" />
+		<Unit filename="inc/UDPReceiver.h" />
+		<Unit filename="src/Broadcaster.cpp" />
+		<Unit filename="src/Client.cpp" />
+		<Unit filename="src/ClientListener.cpp" />
+		<Unit filename="src/ClientProxy.cpp" />
+		<Unit filename="src/EntryPoints.cpp" />
+		<Unit filename="src/Event.cpp" />
+		<Unit filename="src/IceNetClient.cpp" />
+		<Unit filename="src/IceNetServer.cpp" />
+		<Unit filename="src/Mutex.cpp" />
+		<Unit filename="src/NetworkControl.cpp" />
+		<Unit filename="src/OpCodeHandler.cpp" />
+		<Unit filename="src/Packet.cpp" />
+		<Unit filename="src/PacketHandler.cpp" />
+		<Unit filename="src/PacketReceiver.cpp" />
+		<Unit filename="src/PacketSender.cpp" />
+		<Unit filename="src/Semaphore.cpp" />
+		<Unit filename="src/StandardFunctions.cpp" />
+		<Unit filename="src/Thread.cpp" />
+		<Unit filename="src/UDPReceiver.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

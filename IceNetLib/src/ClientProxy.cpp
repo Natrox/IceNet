@@ -25,8 +25,8 @@
 using namespace IceNet;
 
 ClientProxy::ClientProxy( CLIENT_ID publicId ) :
-			 m_AssociatedObject( NULL ),
-			 m_PublicId( publicId )
+			 m_PublicId( publicId ),
+			 m_AssociatedObject( 0 )
 {}
 
 ClientProxy::~ClientProxy( void )

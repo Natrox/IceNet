@@ -31,27 +31,23 @@ using namespace IceNet;
 PacketReceiver::PacketReceiver( Client* parentClient ) :
 			  m_ParentClient( parentClient )
 {
-	m_ThreadHandle = CreateThread( NULL, NULL, PacketReceiverLoop, this, NULL, NULL );
+	m_Thread = new Thread( PacketReceiverLoop, this );
 }
 
 PacketReceiver::~PacketReceiver( void )
 {
-	WaitForSingleObject( m_ThreadHandle, INFINITE );
-
-	CloseHandle( m_ThreadHandle );
+	m_Thread->Wait( INFINITE );
+	delete m_Thread;
 }
 
-DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
+THREAD_FUNC PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 {
 	PacketReceiver* pr = (PacketReceiver*) packetReceiver;
 
 	while ( true )
 	{
-		const HANDLE waitHandles[] = { NetworkControl::GetSingleton()->m_StopRequestedEvent, pr->m_ParentClient->m_StopEvent };
-
-		DWORD waitObject = WaitForMultipleObjects( 2, waitHandles, false, 0 );
-
-		if ( waitObject == WAIT_OBJECT_0 || waitObject == WAIT_OBJECT_0 + 1 )
+		if ( NetworkControl::GetSingleton()->m_StopRequestedEvent.Wait( 0 ) == true ||
+			pr->m_ParentClient->m_StopEvent.Wait( 0 ) == true )
 		{
 			break;
 		}
@@ -78,7 +74,7 @@ DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 		{
 			delete pack;
 
-			SetEvent( pr->m_ParentClient->m_StopEvent );
+			pr->m_ParentClient->m_StopEvent.Set();
 			return 1;
 		}
 
@@ -86,7 +82,7 @@ DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 		totalReceivableSize = (unsigned short) size + sizeof( unsigned short );
 		sizeLeft = totalReceivableSize;
 		char* data = (char*) malloc( (size_t) totalReceivableSize );
-		
+
 		// Read the rest of the data.
 		while ( sizeLeft > 0 )
 		{
@@ -104,7 +100,7 @@ DWORD WINAPI PacketReceiver::PacketReceiverLoop( void* packetReceiver )
 			delete pack;
 
 			free( data );
-			SetEvent( pr->m_ParentClient->m_StopEvent );
+			pr->m_ParentClient->m_StopEvent.Set();
 			return 1;
 		}
 

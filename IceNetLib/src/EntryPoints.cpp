@@ -34,46 +34,43 @@ namespace IceNet
 {
 	// Default entry point for the server configuration
 
-	DWORD WINAPI ServerEntry( void* ptr )
+	THREAD_FUNC ServerEntry( void* ptr )
 	{
 		LinkServerFunctions();
 
 		// Create a new thread for the broadcaster
-		HANDLE bcThr = CreateThread( NULL, NULL, BroadcastEntry, NULL, NULL, NULL );
-		Broadcaster::GetSingleton()->m_BroadcastThreadHandle = bcThr;
+		Broadcaster::GetSingleton()->m_BroadcastThread = new Thread( BroadcastEntry, 0 );
 
 		// Create a new thread for the listener
-		HANDLE lsThr = CreateThread( NULL, NULL, ListenerEntry, NULL, NULL, NULL );
+		Thread lsThr( ListenerEntry, 0 );
 
 		// Create a new thread for the UDP receiver
-		HANDLE urThr = CreateThread( NULL, NULL, UDPReceiverEntry, NULL, NULL, NULL );
+		Thread urThr( UDPReceiverEntry, 0 );
 
 		// Wait for a stop
-		WaitForSingleObject( NetworkControl::GetSingleton()->m_StopRequestedEvent, INFINITE );
-		SetEvent( Broadcaster::GetSingleton()->m_StopRequestedEvent );
+		while ( !NetworkControl::GetSingleton()->m_StopRequestedEvent.Wait( INFINITE ) );
+		Broadcaster::GetSingleton()->m_StopRequestedEvent.Set();
+		Broadcaster::GetSingleton()->AddToList( 0 );
 
 		// Wait for everything to close down
-		WaitForSingleObject( bcThr, INFINITE );
-		CloseHandle( bcThr );
+		Broadcaster::GetSingleton()->m_BroadcastThread->Wait( INFINITE );
+		delete Broadcaster::GetSingleton()->m_BroadcastThread;
 
-		WaitForSingleObject( lsThr, INFINITE );
-		CloseHandle( lsThr );
-
-		WaitForSingleObject( urThr, INFINITE );
-		CloseHandle( urThr );
+		lsThr.Wait( INFINITE );
+		urThr.Wait( INFINITE );
 
 		return 1;
 	}
 
 	// Default entry point for the client configuration
 
-	DWORD WINAPI DisconnectAsync( void* ptr )
+	THREAD_FUNC DisconnectAsync( void* ptr )
 	{
 		ClientSide::Disconnect();
 		return 1;
 	}
 
-	DWORD WINAPI ClientEntry( void* ptr )
+	THREAD_FUNC ClientEntry( void* ptr )
 	{
 		LinkClientFunctions();
 
@@ -83,11 +80,11 @@ namespace IceNet
 			ConnectionInfo cinfoReplc = { 0, 0 };
 			if ( ClientSide::GetOnConnectionFail() != 0 ) ClientSide::GetOnConnectionFail()( cinfoReplc );
 
-			SetEvent( NetworkControl::GetSingleton()->m_StopRequestedEvent );
+			NetworkControl::GetSingleton()->m_StopRequestedEvent.Set();
 			closesocket( NetworkControl::GetSingleton()->m_SocketUDP );
 
 			// Nasty hack, will fix later
-			CreateThread( 0, 0, DisconnectAsync, 0, 0, 0 );
+			Thread thread( DisconnectAsync, 0 );
 
 			return 1;
 		}
@@ -95,15 +92,14 @@ namespace IceNet
 		NetworkControl::GetSingleton()->m_LocalClient = new Client( 256, 0, true, NetworkControl::GetSingleton()->m_SocketTCP );
 
 		// Create the UDP listening thread
-		HANDLE urThr = CreateThread( NULL, NULL, UDPReceiverEntry, NULL, NULL, NULL );
+		Thread urThr( UDPReceiverEntry, 0 );
 
 		// Wait for everything to close down.
-		WaitForSingleObject( NetworkControl::GetSingleton()->m_LocalClient->m_StopEvent, INFINITE );
-		SetEvent( NetworkControl::GetSingleton()->m_StopRequestedEvent );
+		NetworkControl::GetSingleton()->m_LocalClient->m_StopEvent.Wait( INFINITE );
+		NetworkControl::GetSingleton()->m_StopRequestedEvent.Set();
 		closesocket( NetworkControl::GetSingleton()->m_SocketUDP );
 
-		WaitForSingleObject( urThr, INFINITE );
-		CloseHandle( urThr );
+		urThr.Wait( INFINITE );
 
 		// Call the disconnect callback if it exists.
 		if ( ClientSide::GetOnDisconnect() != 0 ) ClientSide::GetOnDisconnect()();

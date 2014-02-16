@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
+#include "Platforms.h"
 
 /*
 	ICECAT Networking		v2.0
@@ -35,7 +34,7 @@
 
 namespace IceNet
 {
-	typedef unsigned short CLIENT_ID; 
+	typedef unsigned short CLIENT_ID;
 	typedef void* PTR_ANYTHING;
 
 	class ClientProxy
@@ -46,7 +45,7 @@ namespace IceNet
 
 		// This allows you to store and retrieve any kind of object
 		void SetAssociatedObject( PTR_ANYTHING object );
-		template < typename T > T* GetAssociatedObject( void ) { return T* m_AssociatedObject; }
+		template < typename T > T* GetAssociatedObject( void ) { return (T*) m_AssociatedObject; }
 
 		CLIENT_ID GetPublicId( void );
 

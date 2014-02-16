@@ -24,9 +24,7 @@
 
 #include <vector>
 
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-
+#include "Platforms.h"
 #include "NetworkControl.h"
 
 #include "Client.h"
@@ -42,13 +40,13 @@
 	file IceNetServer.h:
 
 	This file is the interface to the server-side functions of IceNet.
-	
+
 	To start the server, use Initialize( .. ).
 	To stop the server, use Deinitialize( void ).
 
 	To link operation codes to functions, use the LinkOpCodeFunction( ... ) function,
 	and supply a function with the necessary parameters (found in IceNetTypedefs.h).
-	
+
 	Several classes and structs are available;
 
 	Client,
@@ -58,7 +56,7 @@
 	Packet
 
 	** WARNING **
-	You MUST set up callbacks before you start the server. 
+	You MUST set up callbacks before you start the server.
 	These callback setting functions are not thread-safe by default!
 */
 
@@ -66,7 +64,7 @@ namespace IceNet
 {
 	namespace ServerSide
 	{
-		extern int Initialize( PCSTR port, unsigned int flags );
+		extern int Initialize( const char* port, unsigned int flags );
 		extern void Deinitialize( void );
 
 		extern void SendTCP( Packet* packet, bool deletePacket = true );
@@ -83,8 +81,8 @@ namespace IceNet
 		extern void SetOnAddClient( VOID_WITH_CLIENT_PARAM fun );
 		extern void SetOnRemoveClient( VOID_WITH_CLIENT_PARAM fun );
 
-		extern inline VOID_WITH_CLIENT_PARAM GetOnAddClient( void );
-		extern inline VOID_WITH_CLIENT_PARAM GetOnRemoveClient( void );
+		extern VOID_WITH_CLIENT_PARAM GetOnAddClient( void );
+		extern VOID_WITH_CLIENT_PARAM GetOnRemoveClient( void );
 
 		extern void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun );
 	}
