@@ -173,7 +173,6 @@ More examples can be found within the examples folder.
 
 Future
 ======
-- Add Linux support.
 - Improve connection handling.
 - Add custom protocol support.
 - Add encryption.
