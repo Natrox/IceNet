@@ -96,11 +96,11 @@ namespace IceNet
 		PacketHandler* GetPacketHandler( void );
 
 		// TCP sending of packages, for sending to server and client respectively. Only use one of these. Overrides packet UDP flag.
-		int SendToServerTCP( Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
+		int SendToServerTCP( Packet* packetToSend, bool deletePacket = true, int flags = 0 );
 		int SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
 
 		// UDP sending of packages, for sending to server and client respectively. Only use one of these.
-		int SendToServerUDP( Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
+		int SendToServerUDP( Packet* packetToSend, bool deletePacket = true, int flags = 0 );
 		int SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket = true, int wsaFlags = 0 );
 
 		// Broadcasting of packages to all clients. For UDP sending, packet must specify this explicitly.

@@ -313,7 +313,7 @@ NetworkControl* NetworkControl::GetSingleton( void )
 	return m_Singleton;
 }
 
-int NetworkControl::SendToServerTCP( Packet* packetToSend, bool deletePacket, int wsaFlags )
+int NetworkControl::SendToServerTCP( Packet* packetToSend, bool deletePacket, int flags )
 {
 	// Calculate the real packet size (size of the string)
 	unsigned short size = packetToSend->GetSize() + sizeof( unsigned short );
@@ -327,7 +327,7 @@ int NetworkControl::SendToServerTCP( Packet* packetToSend, bool deletePacket, in
 	// Send until no bytes are left
 	while ( sizeLeft > 0 )
 	{
-		sizeRead = send( m_SocketTCP, &buf[size-sizeLeft], sizeLeft, wsaFlags );
+		sizeRead = send( m_SocketTCP, &buf[size-sizeLeft], sizeLeft, flags );
 		sizeLeft -= sizeRead;
 
 		// No bytes left or error
@@ -342,7 +342,7 @@ int NetworkControl::SendToServerTCP( Packet* packetToSend, bool deletePacket, in
 	return sizeRead;
 }
 
-int NetworkControl::SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket, int wsaFlags )
+int NetworkControl::SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket, int flags )
 {
 	unsigned short size = packetToSend->GetSize() + sizeof( unsigned short );
 	char* buf = packetToSend->GetDataStream();
@@ -352,7 +352,7 @@ int NetworkControl::SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, 
 
 	while ( sizeLeft > 0 && m_PrivateIdClientMap[privateID] != 0 )
 	{
-		sizeRead = send( m_PrivateIdClientMap[privateID]->GetSocket(), &buf[size-sizeLeft], sizeLeft, wsaFlags );
+		sizeRead = send( m_PrivateIdClientMap[privateID]->GetSocket(), &buf[size-sizeLeft], sizeLeft, flags );
 		sizeLeft -= sizeRead;
 
 		if ( sizeRead <= 0 )
@@ -366,7 +366,7 @@ int NetworkControl::SendToClientTCP( CLIENT_ID privateID, Packet* packetToSend, 
 	return sizeRead;
 }
 
-int NetworkControl::SendToServerUDP( Packet* packetToSend, bool deletePacket, int wsaFlags )
+int NetworkControl::SendToServerUDP( Packet* packetToSend, bool deletePacket, int flags )
 {
 	// Calculate the real packet size (size of the string)
 	unsigned short size = packetToSend->GetSize() + sizeof( unsigned short );
@@ -378,14 +378,14 @@ int NetworkControl::SendToServerUDP( Packet* packetToSend, bool deletePacket, in
 	int sizeRead = 0;
 
 	// Send until no bytes are left
-	sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, m_MyAddrInfoUDP->ai_addr, (int) m_MyAddrInfoUDP->ai_addrlen );
+	sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, flags, m_MyAddrInfoUDP->ai_addr, (int) m_MyAddrInfoUDP->ai_addrlen );
 
 	if ( deletePacket ) delete packetToSend;
 
 	return sizeRead;
 }
 
-int NetworkControl::SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket, int wsaFlags )
+int NetworkControl::SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, bool deletePacket, int flags )
 {
 	if ( m_PrivateIdClientMap[privateID] == 0 )
 	{
@@ -405,7 +405,7 @@ int NetworkControl::SendToClientUDP( CLIENT_ID privateID, Packet* packetToSend, 
 	{
 		const int b = sizeof ( sockaddr );
 
-		sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, wsaFlags, &udpOrig, b );
+		sizeRead = sendto( m_SocketUDP, &buf[size-sizeLeft], sizeLeft, flags, &udpOrig, b );
 	}
 
 	if ( deletePacket ) delete packetToSend;
