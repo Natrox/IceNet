@@ -86,8 +86,7 @@ THREAD_FUNC PacketHandler::PacketHandlerLoop( void* packetHandler )
 		ph->m_PacketAdditionMutex.Unlock();
 
 		// Handle the packet if its operation code is recognized
-		PACKET_HANDLING_FUNCTION fun = OpCodeHandler::GetSingleton()->GetOpCodeFunction( handlePacket->GetOpCode() );
-		if ( fun != 0 ) fun( handlePacket );
+		OpCodeHandler::GetSingleton()->CallOpCodeFunction( handlePacket->GetOpCode(), handlePacket );
 
 		delete handlePacket;
 	}
@@ -123,8 +122,7 @@ unsigned int PacketHandler::HandlePackets( void )
 		m_PacketQueue.pop();
 
 		// Handle the packet if its operation code is recognized
-		PACKET_HANDLING_FUNCTION fun = OpCodeHandler::GetSingleton()->GetOpCodeFunction( handlePacket->GetOpCode() );
-		if ( fun != 0 ) fun( handlePacket );
+		OpCodeHandler::GetSingleton()->CallOpCodeFunction( handlePacket->GetOpCode(), handlePacket );
 
 		delete handlePacket;
 		amount++;

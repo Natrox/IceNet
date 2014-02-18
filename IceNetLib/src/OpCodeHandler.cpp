@@ -29,6 +29,7 @@ OpCodeHandler* OpCodeHandler::m_Singleton = 0;
 OpCodeHandler::OpCodeHandler( void )
 {
 	memset( m_OpCodes, 0, sizeof( PACKET_HANDLING_FUNCTION ) * USHRT_MAX );
+	memset( m_ClientData, 0, sizeof( void* ) * USHRT_MAX );
 }
 
 OpCodeHandler::~OpCodeHandler( void )
@@ -44,10 +45,12 @@ OpCodeHandler* OpCodeHandler::GetSingleton( void )
 	return m_Singleton;
 }
 
-void OpCodeHandler::LinkOpCodeFunction( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun )
+void OpCodeHandler::LinkOpCodeFunction( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun, void* clientData )
 {
 	if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return;
+
 	m_OpCodes[ codeNumber + 256 ] = fun;
+	m_ClientData[ codeNumber + 256 ] = clientData;
 }
 
 void OpCodeHandler::LinkOpCodeFunctionInternal( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun )
@@ -55,7 +58,26 @@ void OpCodeHandler::LinkOpCodeFunctionInternal( OPCODE codeNumber, PACKET_HANDLI
 	m_OpCodes[ codeNumber ] = fun;
 }
 
-PACKET_HANDLING_FUNCTION OpCodeHandler::GetOpCodeFunction( OPCODE codeNumber )
+void OpCodeHandler::CallOpCodeFunction( OPCODE codeNumber, Packet* packet )
 {
-	return m_OpCodes[ codeNumber ];
+	PACKET_HANDLING_FUNCTION fun = m_OpCodes[ codeNumber ];
+
+	if ( fun != 0 )
+	{
+        fun( packet, m_ClientData[ codeNumber ] );
+	}
+}
+
+void OpCodeHandler::SetClientData( OPCODE codeNumber, void* clientData )
+{
+    if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return;
+
+    m_ClientData[ codeNumber + 256 ] = clientData;
+}
+
+void* OpCodeHandler::GetClientData( OPCODE codeNumber )
+{
+    if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return 0;
+
+    return m_ClientData[ codeNumber + 256 ];
 }

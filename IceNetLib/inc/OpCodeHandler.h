@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <map>
 #include "Platforms.h"
 
 /*
@@ -37,7 +38,7 @@ namespace IceNet
 	class Packet;
 
 	typedef unsigned short OPCODE;
-	typedef void ( *PACKET_HANDLING_FUNCTION )( Packet* );
+	typedef void ( *PACKET_HANDLING_FUNCTION )( Packet*, void* );
 
 	void LinkClientFunctions( void );
 
@@ -45,14 +46,14 @@ namespace IceNet
 	{
 	public:
 		// These enums are used to specify internally linked functions.
-		enum CL_INTERNAL
+		enum ClientInternal
 		{
 			GET_ID = 1,
 			ADD_CLIENT,
 			REMOVE_CLIENT
 		};
 
-		enum SV_INTERNAL
+		enum ServerInternal
 		{
 			SET_UDP = 1
 		};
@@ -62,12 +63,18 @@ namespace IceNet
 
 		static OpCodeHandler* GetSingleton( void );
 
-		void LinkOpCodeFunction( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun );
-		PACKET_HANDLING_FUNCTION GetOpCodeFunction( OPCODE codeNumber );
+		void LinkOpCodeFunction( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun, void* clientData = 0 );
+
+		void SetClientData( OPCODE codeNumber, void* clientData );
+		void* GetClientData( OPCODE codeNumber );
+
+		void CallOpCodeFunction( OPCODE codeNumber, Packet* packet );
 
 	private:
 		void LinkOpCodeFunctionInternal( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun );
-		PACKET_HANDLING_FUNCTION m_OpCodes[ USHRT_MAX ]; 
+
+		PACKET_HANDLING_FUNCTION m_OpCodes[ USHRT_MAX ];
+        void* m_ClientData[ USHRT_MAX ];
 
 		static OpCodeHandler* m_Singleton;
 
