@@ -63,9 +63,12 @@ namespace IceNet
 			PROTOCOL_TCP = 0,
 			PROTOCOL_UDP = 1,
 
-			// Handler settings,
+			// Handler settings
 			HANDLER_ASYNC = 0,			// Packet handling is done asynchronously. Users are expected to make opcode functions threadsafe.
-			HANDLER_SYNC = 2			// Packet handling is invoked by the user. Opcode functions run in the same thread HandlePackets() was called from.
+			HANDLER_SYNC = 2,			// Packet handling is invoked by the user. Opcode functions run in the same thread HandlePackets() was called from.
+
+			// Client Management
+			VENDOR_MODE = 4             // Clients will not know about the existence of other clients (via ClientProxy).
 		};
 
 		// Error codes in case things fail
