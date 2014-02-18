@@ -119,6 +119,13 @@ unsigned int packetsHandled = HandlePackets();
 // Packets are deleted automatically!
 ```
 
+By default, every client has information about the other clients on the server. This can be disabled;
+
+```cpp
+// Use the VENDOR_MODE flag. This flag has no effect on ClientSide::Connect()
+ServerSide::Initialize( "346366", NetworkControl::PROTOCOL_UDP | NetworkControl::VENDOR_MODE );
+```
+
 To send packets from the client (example);
 
 ```cpp
