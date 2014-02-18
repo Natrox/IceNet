@@ -28,7 +28,7 @@
 
 namespace IceNet
 {
-	void ReceiveID( Packet* pack )
+	void ReceiveID( Packet* pack, void* clientData )
 	{
 		if ( NetworkControl::GetSingleton()->m_LocalClient->GetPrivateId() != 0 ) return;
 
@@ -48,7 +48,7 @@ namespace IceNet
 		ClientSide::SendUDP( pack2 );
 	}
 
-	void AddRemoteClient( Packet* pack )
+	void AddRemoteClient( Packet* pack, void* clientData )
 	{
 		unsigned short publicId = pack->RetrieveDataStreaming< unsigned short >();
 
@@ -57,7 +57,7 @@ namespace IceNet
 		if ( ClientSide::GetOnAddRemoteClient() != 0 ) ClientSide::GetOnAddRemoteClient()( client );
 	}
 
-	void RemoveRemoteClient( Packet* pack )
+	void RemoveRemoteClient( Packet* pack, void* clientData )
 	{
 		unsigned short publicId = pack->RetrieveDataStreaming< unsigned short >();
 

@@ -154,6 +154,6 @@ namespace IceNet
 
 		friend THREAD_FUNC ListenerEntry( void* ptr );
 		friend class Client;
-		friend void ReceiveID( Packet* pack );
+		friend void ReceiveID( Packet* pack, void* clientData );
 	};
 };
