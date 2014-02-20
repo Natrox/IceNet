@@ -93,15 +93,12 @@ ClientSide::Connect( "346366", "127.0.0.1", NetworkControl::PROTOCOL_UDP | Netwo
 Here's an example of a packet handling function;
 
 ```cpp
-void PrintNumber( Packet* packet )
+void PrintNumber( Packet& packet, void* userData )
 {
   // Retrieve the data from the packet and increment the streaming pointer.
   int number = packet->RetrieveDataStreaming< int >();
   
   printf( "%d\n", number );
-  
-  // Packet is automatically deleted!
-}
 ```
 
 When using NetworkControl::HANDLER_ASYNC in the initialization, packets are handled by the default client threads. This means that thread safety has to be ensured. If you wish to handle packets in a thread of choice, you may do so;
