@@ -112,7 +112,7 @@ namespace IceNet
 			// Broadcast the public ID to all other clients.
 			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::VENDOR_MODE ) )
 			{
-                Packet* broadcast = new Packet();
+				Packet* broadcast = new Packet();
 
                 broadcast->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
                 broadcast->AddDataStreaming<unsigned short>( (unsigned short) newClientObj->m_PublicId );
