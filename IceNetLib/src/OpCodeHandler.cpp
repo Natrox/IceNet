@@ -64,20 +64,20 @@ void OpCodeHandler::CallOpCodeFunction( OPCODE codeNumber, Packet* packet )
 
 	if ( fun != 0 )
 	{
-        fun( packet, m_ClientData[ codeNumber ] );
+		fun( packet, m_ClientData[ codeNumber ] );
 	}
 }
 
 void OpCodeHandler::SetClientData( OPCODE codeNumber, void* clientData )
 {
-    if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return;
+	if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return;
 
-    m_ClientData[ codeNumber + 256 ] = clientData;
+	m_ClientData[ codeNumber + 256 ] = clientData;
 }
 
 void* OpCodeHandler::GetClientData( OPCODE codeNumber )
 {
-    if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return 0;
+	if ( (unsigned short) ( codeNumber + 256 ) < 256 ) return 0;
 
-    return m_ClientData[ codeNumber + 256 ];
+	return m_ClientData[ codeNumber + 256 ];
 }

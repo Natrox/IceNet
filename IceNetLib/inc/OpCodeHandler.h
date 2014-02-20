@@ -74,7 +74,7 @@ namespace IceNet
 		void LinkOpCodeFunctionInternal( OPCODE codeNumber, PACKET_HANDLING_FUNCTION fun );
 
 		PACKET_HANDLING_FUNCTION m_OpCodes[ USHRT_MAX ];
-        void* m_ClientData[ USHRT_MAX ];
+		void* m_ClientData[ USHRT_MAX ];
 
 		static OpCodeHandler* m_Singleton;
 

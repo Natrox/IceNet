@@ -114,14 +114,14 @@ namespace IceNet
 			{
 				Packet* broadcast = new Packet();
 
-                		broadcast->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
-                		broadcast->AddDataStreaming<unsigned short>( (unsigned short) newClientObj->m_PublicId );
-                		broadcast->SetClientPrivateId( newClientObj->m_PrivateId );
-                		broadcast->SetFlag( Packet::PF_EXCLUDEORIGIN );
-                		sendidpack->SetUDPEnabled( false );
+				broadcast->SetOpCodeInternal( OpCodeHandler::ADD_CLIENT );
+				broadcast->AddDataStreaming<unsigned short>( (unsigned short) newClientObj->m_PublicId );
+				broadcast->SetClientPrivateId( newClientObj->m_PrivateId );
+				broadcast->SetFlag( Packet::PF_EXCLUDEORIGIN );
+				sendidpack->SetUDPEnabled( false );
 
-                		NetworkControl::GetSingleton()->BroadcastToAll( broadcast );
-            		}
+				NetworkControl::GetSingleton()->BroadcastToAll( broadcast );
+			}
 
 			if ( !( NetworkControl::GetSingleton()->GetFlags() & NetworkControl::VENDOR_MODE ) && NetworkControl::GetSingleton()->m_ClientIds.size() > 0 )
 			{
