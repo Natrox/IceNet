@@ -90,6 +90,6 @@ namespace IceNet
 		extern VOID_WITH_CLIENTPROXY_PARAM GetOnAddRemoteClient( void );
 		extern VOID_WITH_CLIENTPROXY_PARAM GetOnRemoveRemoteClient( void );
 
-		extern void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun );
+		extern void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun, void* userData = 0 );
 	}
 }

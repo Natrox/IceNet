@@ -64,7 +64,7 @@ void OpCodeHandler::CallOpCodeFunction( OPCODE codeNumber, Packet* packet )
 
 	if ( fun != 0 )
 	{
-		fun( packet, m_ClientData[ codeNumber ] );
+		fun( *packet, m_ClientData[ codeNumber ] );
 	}
 }
 

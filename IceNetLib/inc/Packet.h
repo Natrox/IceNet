@@ -130,6 +130,7 @@ namespace IceNet
 
 	private:
 		void SetOpCodeInternal( const unsigned short& opCode );
+		void ResetDataPointers( void );
 
 		// Checks if the current size is adequate for new objects
 		void ResizeCheck( unsigned short size );
@@ -154,6 +155,6 @@ namespace IceNet
 
 		friend THREAD_FUNC ListenerEntry( void* ptr );
 		friend class Client;
-		friend void ReceiveID( Packet* pack, void* clientData );
+		friend void ReceiveID( Packet& pack, void* clientData );
 	};
 };

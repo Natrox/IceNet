@@ -127,9 +127,9 @@ namespace IceNet
 			return g_Remove;
 		}
 
-		void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun )
+		void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun, void* userData )
 		{
-			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun );
+			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun, userData );
 		}
 	}
 }

@@ -23,7 +23,9 @@
 #pragma once
 
 #include <map>
+
 #include "Platforms.h"
+#include "IceNetTypedefs.h"
 
 /*
 	ICECAT Networking		v2.0
@@ -36,9 +38,6 @@
 namespace IceNet
 {
 	class Packet;
-
-	typedef unsigned short OPCODE;
-	typedef void ( *PACKET_HANDLING_FUNCTION )( Packet*, void* );
 
 	void LinkClientFunctions( void );
 

@@ -84,6 +84,6 @@ namespace IceNet
 		extern VOID_WITH_CLIENT_PARAM GetOnAddClient( void );
 		extern VOID_WITH_CLIENT_PARAM GetOnRemoveClient( void );
 
-		extern void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun );
+		extern void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun, void* userData = 0 );
 	}
 }

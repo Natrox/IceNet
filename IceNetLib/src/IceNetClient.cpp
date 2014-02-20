@@ -151,9 +151,9 @@ namespace IceNet
 			return g_RemoveRemote;
 		}
 
-		void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun )
+		void LinkOpCodeFunction( unsigned short codeNumber, PACKET_HANDLING_FUNCTION fun, void* userData )
 		{
-			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun );
+			OpCodeHandler::GetSingleton()->LinkOpCodeFunction( (IceNet::OPCODE) codeNumber, fun, userData );
 		}
 	}
 }

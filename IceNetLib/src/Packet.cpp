@@ -38,14 +38,9 @@ Packet::Packet( void ) :
 	m_Data[1] = 'S';
 
 	// Set up pointers to the m_Data string
-	m_StreamSize = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) );
+	ResetDataPointers();
+
 	*m_StreamSize = m_Offset - sizeof( unsigned short );
-
-	m_PrivateId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 2 );
-	m_PublicId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 3 );
-
-	m_UDPEnabled = ( unsigned char* ) ( m_Data + sizeof( unsigned short ) * 4 );
-	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
 }
 
 Packet::Packet( Packet* pack ) :
@@ -57,14 +52,7 @@ Packet::Packet( Packet* pack ) :
 	m_Data = (char*) malloc( m_MaxSize );
 	memcpy( m_Data, pack->m_Data, m_MaxSize );
 
-	// Set up pointers to the m_Data string
-	m_StreamSize = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) );
-
-	m_PrivateId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 2 );
-	m_PublicId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 3 );
-
-	m_UDPEnabled = ( unsigned char* ) ( m_Data + sizeof( unsigned short ) * 4 );
-	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
+	ResetDataPointers();
 }
 
 Packet::~Packet( void )
@@ -173,14 +161,7 @@ void Packet::SetFromDataStream( char* dataStream, unsigned short sizeOfData )
 	m_Data = (char*) realloc( m_Data, sizeOfData );
 	memcpy( m_Data, dataStream, sizeOfData );
 
-	// Set up pointers to the m_Data string
-	m_StreamSize = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) );
-
-	m_PrivateId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 2 );
-	m_PublicId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 3 );
-
-	m_UDPEnabled = ( unsigned char* ) ( m_Data + sizeof( unsigned short ) * 4 );
-	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
+	ResetDataPointers();
 }
 
 void Packet::BorrowFromDataStream( char* dataStream )
@@ -213,13 +194,18 @@ void Packet::ResizeCheck( unsigned short size )
 	{
 		m_Data = (char*) realloc( m_Data, (size_t) m_MaxSize );
 
-		// Set up pointers to the m_Data string
-		m_StreamSize = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) );
-
-		m_PrivateId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 2 );
-		m_PublicId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 3 );
-
-		m_UDPEnabled = ( unsigned char* ) ( m_Data + sizeof( unsigned short ) * 4 );
-		m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
+		ResetDataPointers();
 	}
+}
+
+void Packet::ResetDataPointers( void )
+{
+	// Set up pointers to the m_Data string
+	m_StreamSize = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) );
+
+	m_PrivateId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 2 );
+	m_PublicId = ( CLIENT_ID* ) ( m_Data + sizeof( unsigned short ) * 3 );
+
+	m_UDPEnabled = ( unsigned char* ) ( m_Data + sizeof( unsigned short ) * 4 );
+	m_OpCode = ( unsigned short* ) ( m_Data + sizeof( unsigned short ) * 4 + sizeof( unsigned char ) );
 }

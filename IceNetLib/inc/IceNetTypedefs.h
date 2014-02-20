@@ -38,7 +38,9 @@ namespace IceNet
 	class ClientProxy;
 	class Client;
 
-	typedef void ( *PACKET_HANDLING_FUNCTION )( Packet*, void* );
+	typedef unsigned short OPCODE;
+
+	typedef void ( *PACKET_HANDLING_FUNCTION )( Packet&, void* );
 	typedef void ( *VOID_WITH_CONNECTIONINFO_PARAM )( ConnectionInfo );
 	typedef void ( *VOID_WITH_CLIENTPROXY_PARAM )( ClientProxy* );
 	typedef void ( *VOID_WITH_CLIENT_PARAM )( Client* );

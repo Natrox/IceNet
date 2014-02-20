@@ -28,12 +28,12 @@
 
 namespace IceNet
 {
-	void ReceiveID( Packet* pack, void* clientData )
+	void ReceiveID( Packet& pack, void* clientData )
 	{
 		if ( NetworkControl::GetSingleton()->m_LocalClient->GetPrivateId() != 0 ) return;
 
-		unsigned short publicId = pack->RetrieveDataStreaming< unsigned short >();
-		unsigned short privateId = pack->RetrieveDataStreaming< unsigned short >();
+		unsigned short publicId = pack.RetrieveDataStreaming< unsigned short >();
+		unsigned short privateId = pack.RetrieveDataStreaming< unsigned short >();
 
 		NetworkControl::GetSingleton()->SetPublicId( publicId );
 		NetworkControl::GetSingleton()->SetPrivateId( privateId );
@@ -48,18 +48,18 @@ namespace IceNet
 		ClientSide::SendUDP( pack2 );
 	}
 
-	void AddRemoteClient( Packet* pack, void* clientData )
+	void AddRemoteClient( Packet& pack, void* clientData )
 	{
-		unsigned short publicId = pack->RetrieveDataStreaming< unsigned short >();
+		unsigned short publicId = pack.RetrieveDataStreaming< unsigned short >();
 
 		ClientProxy* client = NetworkControl::GetSingleton()->AddClientProxy( publicId );
 
 		if ( ClientSide::GetOnAddRemoteClient() != 0 ) ClientSide::GetOnAddRemoteClient()( client );
 	}
 
-	void RemoveRemoteClient( Packet* pack, void* clientData )
+	void RemoveRemoteClient( Packet& pack, void* clientData )
 	{
-		unsigned short publicId = pack->RetrieveDataStreaming< unsigned short >();
+		unsigned short publicId = pack.RetrieveDataStreaming< unsigned short >();
 
 		ClientProxy* client = NetworkControl::GetSingleton()->m_PublicIdClientProxyMap[ publicId ];
 		
