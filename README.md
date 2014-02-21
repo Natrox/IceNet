@@ -99,6 +99,7 @@ void PrintNumber( Packet& packet, void* userData )
   int number = packet->RetrieveDataStreaming< int >();
   
   printf( "%d\n", number );
+}
 ```
 
 When using NetworkControl::HANDLER_ASYNC in the initialization, packets are handled by the default client threads. This means that thread safety has to be ensured. If you wish to handle packets in a thread of choice, you may do so;
