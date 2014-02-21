@@ -96,7 +96,7 @@ Here's an example of a packet handling function;
 void PrintNumber( Packet& packet, void* userData )
 {
   // Retrieve the data from the packet and increment the streaming pointer.
-  int number = packet->RetrieveDataStreaming< int >();
+  int number = packet.RetrieveDataStreaming< int >();
   
   printf( "%d\n", number );
 }
