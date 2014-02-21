@@ -3,6 +3,8 @@ IceNet
 
 IceNet is a statically-linked low-level networking library for Windows and Linux. It is currently in early development stages.
 
+Try out this test application: https://dl.dropboxusercontent.com/u/17984511/IcePaint2.rar
+
 Features
 --------
 
