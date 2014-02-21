@@ -55,7 +55,7 @@ namespace ExtExe
 	class Thread
 	{
 	public:
-		Thread( StartRoutine func, void* arg );
+		Thread( StartRoutine func, void* arg, bool detached = false );
 		~Thread( void );
 
 	public:

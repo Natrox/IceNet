@@ -26,7 +26,7 @@ using namespace ExtExe;
 
 #ifdef _WIN32
 
-Thread::Thread( StartRoutine func, void* arg )
+Thread::Thread( StartRoutine func, void* arg, bool detached )
 {
 	m_ThreadObject = CreateThread( 0, 0, func, arg, 0, 0 );
 }
@@ -48,7 +48,7 @@ bool Thread::Wait( unsigned int time )
 
 #ifdef __linux__
 
-Thread::Thread( StartRoutine func, void* arg )
+Thread::Thread( StartRoutine func, void* arg, bool detached )
 {
 	pthread_attr_t attr;
 
@@ -57,6 +57,8 @@ Thread::Thread( StartRoutine func, void* arg )
 
 	pthread_attr_init( &attr );
 	pthread_attr_setschedparam( &attr, &sched );
+	
+	if ( detached ) pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_DETACHED );
 
 	int a = pthread_create( &m_ThreadObject, 0, ( void*(*) (void*) )func, arg );
 	(void) a;

@@ -55,7 +55,7 @@ Client::Client( CLIENT_ID publicId, CLIENT_ID privateId, bool local, SOCKET sock
 	}
 
 	// Create the KeepAlive thread
-	m_Thread = new Thread( KeepAlive, this );
+	m_Thread = new Thread( KeepAlive, this, true );
 }
 
 Client::~Client( void )
@@ -83,6 +83,8 @@ Client::~Client( void )
 	{
 		closesocket( m_SocketTCP );
 	}
+
+	delete m_Thread;
 }
 
 THREAD_FUNC Client::KeepAlive( void* client )
