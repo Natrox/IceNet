@@ -3,6 +3,11 @@ IceNet
 
 IceNet is a statically-linked low-level networking library for Windows and Linux. It is currently in early development stages.
 
+Current issues
+--------
+
+Beware of asynchronous packet handling in the Linux build. At this point in time (2/21/2014), using asynchronous packet handling can break IceNet. I am working on a fix.
+
 Features
 --------
 
@@ -96,7 +101,7 @@ Here's an example of a packet handling function;
 void PrintNumber( Packet& packet, void* userData )
 {
   // Retrieve the data from the packet and increment the streaming pointer.
-  int number = packet->RetrieveDataStreaming< int >();
+  int number = packet.RetrieveDataStreaming< int >();
   
   printf( "%d\n", number );
 }
